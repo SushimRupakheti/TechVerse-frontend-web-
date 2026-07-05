@@ -99,7 +99,7 @@ export default function DashboardSellAddDetailsPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
       <p className="text-sm text-gray-500">Sell / SellStart / <span className="text-gray-700">Item Details</span></p>
-      <h1 className="mt-4 text-3xl font-semibold text-teal-600">Set your listing price</h1>
+      <h1 className="mt-4 text-3xl font-semibold text-blue-600">Set your listing price</h1>
 
       <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="grid gap-4 md:grid-cols-2">
@@ -121,7 +121,7 @@ export default function DashboardSellAddDetailsPage() {
               value={askingPrice}
               onChange={(e) => setAskingPrice(e.target.value)}
               placeholder="Enter your price"
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none focus:border-teal-600"
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none focus:border-blue-600"
             />
           </label>
 
@@ -130,7 +130,7 @@ export default function DashboardSellAddDetailsPage() {
             <select
               value={condition}
               onChange={(e) => setCondition(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm outline-none focus:border-teal-600"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-600"
             >
               <option>New</option>
               <option>Like New</option>
@@ -146,7 +146,7 @@ export default function DashboardSellAddDetailsPage() {
               type="number"
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none focus:border-teal-600"
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none focus:border-blue-600"
             />
           </label>
         </div>
@@ -166,7 +166,7 @@ export default function DashboardSellAddDetailsPage() {
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full h-36 rounded-lg border border-gray-300 p-3 outline-none focus:border-teal-600"
+            className="w-full h-36 rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-600"
             placeholder="Add storage, RAM, accessories included, cosmetic condition, and anything else buyers should know."
           />
         </div>
@@ -175,9 +175,9 @@ export default function DashboardSellAddDetailsPage() {
       </div>
 
       <div className="mt-8 flex items-center gap-4">
-        <Link href="/dashboard/sell/add" className="px-6 py-3 border rounded-md text-teal-700">Cancel</Link>
+        <Link href="/dashboard/sell/add" className="px-6 py-3 border rounded-md text-blue-700">Cancel</Link>
         <div className="ml-auto flex items-center gap-4">
-          <button onClick={handleSubmit} disabled={loading || !askingPrice.trim()} className="bg-teal-700 text-white px-8 py-3 rounded-md disabled:cursor-not-allowed disabled:opacity-60">{loading ? 'Submitting...' : 'Submit'}</button>
+          <button onClick={handleSubmit} disabled={loading || !askingPrice.trim()} className="bg-blue-700 text-white px-8 py-3 rounded-md disabled:cursor-not-allowed disabled:opacity-60">{loading ? 'Submitting...' : 'Submit'}</button>
         </div>
       </div>
 

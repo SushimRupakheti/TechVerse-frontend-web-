@@ -54,10 +54,10 @@ export default function Home() {
           {/* Right */}
           <div className="relative h-[360px] sm:h-[420px] lg:h-[520px] flex items-center justify-center">
             <Image
-              src="/laptop2.png"
+              src="/bg.png"
               alt="Laptop Background"
-              width={900}
-              height={450}
+              width={1200}
+              height={650}
               className="absolute inset-0 m-auto opacity-20 scale-110 blur-[1px]"
             />
             <Image

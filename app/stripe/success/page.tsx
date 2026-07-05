@@ -1,39 +1,42 @@
 import Link from "next/link";
+import { CheckCircle2, LayoutDashboard, ShoppingBag } from "lucide-react";
 
-type Props = {
-  searchParams?: Promise<{ session_id?: string | string[] }> | { session_id?: string | string[] };
-};
-
-export default async function StripeSuccessPage({ searchParams }: Props) {
-  const params = await searchParams;
-  const sessionId = Array.isArray(params?.session_id) ? params?.session_id[0] : params?.session_id;
-
+export default function StripeSuccessPage() {
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-16">
-      <div className="mx-auto max-w-2xl rounded-xl border border-emerald-200 bg-white p-8 shadow-sm">
-        <p className="text-xs uppercase tracking-[0.24em] text-emerald-700">Stripe payment</p>
-        <h1 className="mt-3 text-3xl font-semibold text-gray-950">Checkout returned</h1>
-        <p className="mt-3 text-sm leading-6 text-gray-600">
-          Stripe redirected you back after checkout. MongoDB payment records and sold-status updates are
-          created only when the backend receives the Stripe webhook.
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.16),_transparent_34%),linear-gradient(180deg,_#f7faff_0%,_#eef5ff_55%,_#ffffff_100%)] px-4 py-16">
+      <section className="mx-auto max-w-2xl rounded-2xl border border-blue-100 bg-white p-8 text-center shadow-[0_24px_70px_rgba(15,23,42,0.12)]">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-blue-700">
+          <CheckCircle2 className="h-9 w-9" />
+        </div>
+
+        <p className="mt-6 text-xs font-semibold uppercase tracking-[0.24em] text-blue-700">
+          Payment completed
+        </p>
+        <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">
+          Payment successful
+        </h1>
+        <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-500">
+          Thank you for your purchase. Your order is being finalized, and the
+          purchased item will be removed from available TechVerse listings.
         </p>
 
-        {sessionId && (
-          <div className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-gray-500">Session ID</p>
-            <p className="mt-2 break-all text-sm font-medium text-gray-900">{sessionId}</p>
-          </div>
-        )}
-
-        <div className="mt-7 flex flex-wrap gap-3">
-          <Link href="/dashboard" className="rounded-lg bg-teal-700 px-5 py-3 text-sm font-semibold text-white hover:bg-teal-800">
+        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center justify-center gap-2 rounded-md bg-blue-700 px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(37,99,235,0.22)] hover:bg-blue-800"
+          >
+            <LayoutDashboard className="h-4 w-4" />
             Go to dashboard
           </Link>
-          <Link href="/" className="rounded-lg border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50">
-            Back to home
+          <Link
+            href="/dashboard/cart"
+            className="inline-flex items-center justify-center gap-2 rounded-md border border-blue-100 bg-white px-5 py-3 text-sm font-semibold text-blue-700 hover:bg-blue-50"
+          >
+            <ShoppingBag className="h-4 w-4" />
+            View cart
           </Link>
         </div>
-      </div>
+      </section>
     </main>
   );
 }

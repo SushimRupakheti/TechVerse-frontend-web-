@@ -43,7 +43,7 @@ export default function Page() {
         <div className="rounded-2xl sm:rounded-3xl bg-white border border-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.10)] p-6 sm:p-8 lg:p-10">
           {/* Header */}
           <div className="text-center">
-            <p className="inline-flex items-center rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold tracking-wide text-teal-700">
+            <p className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold tracking-wide text-blue-700">
               ACCOUNT RECOVERY
             </p>
 
@@ -73,7 +73,7 @@ export default function Page() {
                   "focus:outline-none focus:ring-4 transition",
                   errors.email
                     ? "border-red-400 focus:border-red-500 focus:ring-red-100"
-                    : "border-gray-200 focus:border-teal-500 focus:ring-teal-100",
+                    : "border-gray-200 focus:border-blue-500 focus:ring-blue-100",
                 ].join(" ")}
               />
 
@@ -91,8 +91,8 @@ export default function Page() {
               disabled={isSubmitting}
               className={[
                 "w-full rounded-xl py-3 sm:py-3.5 font-medium text-white",
-                "bg-teal-600 hover:bg-teal-700 shadow-sm hover:shadow transition",
-                "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-teal-600",
+                "bg-blue-600 hover:bg-blue-700 shadow-sm hover:shadow transition",
+                "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-blue-600",
               ].join(" ")}
             >
               {isSubmitting ? "Sending…" : "Send reset link"}
@@ -102,7 +102,7 @@ export default function Page() {
             <div className="pt-1">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-sm text-gray-600">
                 <span>Remembered your password?</span>
-                <Link href="/login" className="text-teal-700 font-semibold hover:underline">
+                <Link href="/login" className="text-blue-700 font-semibold hover:underline">
                   Log in
                 </Link>
               </div>

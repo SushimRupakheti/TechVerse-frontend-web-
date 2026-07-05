@@ -72,7 +72,7 @@ export default function ResetPasswordForm({ token }: { token: string }) {
         <div className="w-full max-w-md">
           <div className="rounded-3xl bg-white shadow-lg p-8">
             <div className="text-center">
-              <p className="inline-flex items-center rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">
+              <p className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
                 PASSWORD UPDATE
               </p>
 
@@ -96,7 +96,7 @@ export default function ResetPasswordForm({ token }: { token: string }) {
                   <input
                     type={showPassword ? "text" : "password"}
                     {...register("password")}
-                    className="w-full rounded-xl px-4 py-3 bg-gray-50 border border-gray-200 focus:ring-4 focus:ring-teal-100 focus:border-teal-500"
+                    className="w-full rounded-xl px-4 py-3 bg-gray-50 border border-gray-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500"
                     placeholder="Enter new password"
                   />
 
@@ -126,7 +126,7 @@ export default function ResetPasswordForm({ token }: { token: string }) {
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     {...register("confirmPassword")}
-                    className="w-full rounded-xl px-4 py-3 bg-gray-50 border border-gray-200 focus:ring-4 focus:ring-teal-100 focus:border-teal-500"
+                    className="w-full rounded-xl px-4 py-3 bg-gray-50 border border-gray-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500"
                     placeholder="Re-enter password"
                   />
 
@@ -151,14 +151,14 @@ export default function ResetPasswordForm({ token }: { token: string }) {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full rounded-xl py-3 font-medium text-white bg-teal-600 hover:bg-teal-700"
+                className="w-full rounded-xl py-3 font-medium text-white bg-blue-600 hover:bg-blue-700"
               >
                 Reset password
               </button>
 
               <div className="text-center text-sm text-gray-600">
                 Back to{" "}
-                <Link href="/login" className="text-teal-700 font-semibold">
+                <Link href="/login" className="text-blue-700 font-semibold">
                   Login
                 </Link>
               </div>
@@ -189,7 +189,7 @@ export default function ResetPasswordForm({ token }: { token: string }) {
 
               <button
                 onClick={confirmReset}
-                className="flex-1 py-2 rounded-lg bg-teal-600 text-white"
+                className="flex-1 py-2 rounded-lg bg-blue-600 text-white"
               >
                 Confirm
               </button>

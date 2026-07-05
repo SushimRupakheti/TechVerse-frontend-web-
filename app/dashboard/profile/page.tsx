@@ -77,7 +77,7 @@ export default function ProfilePage() {
   }, []);
 
   const inputBase =
-    "w-full rounded-sm bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder:text-gray-400 outline-none border border-transparent focus:border-teal-600 focus:bg-white transition";
+    "w-full rounded-sm bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder:text-gray-400 outline-none border border-transparent focus:border-blue-600 focus:bg-white transition";
 
   const onSave = async () => {
     try {
@@ -155,7 +155,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-4">
             <div>
               <span className="text-gray-600">Welcome! </span>
-              <span className="text-teal-700 font-medium">
+              <span className="text-blue-700 font-medium">
                 {form.firstName || "User"} {form.lastName}
               </span>
             </div>
@@ -176,7 +176,7 @@ export default function ProfilePage() {
                   toast.error(err instanceof Error ? err.message : "Logout failed");
                 }
               }}
-              className="border border-teal-700 text-teal-700 hover:bg-teal-700 hover:text-white text-xs font-medium px-4 py-2 rounded-sm transition"
+              className="border border-blue-700 text-blue-700 hover:bg-blue-700 hover:text-white text-xs font-medium px-4 py-2 rounded-sm transition"
             >
               Logout
             </button>
@@ -189,7 +189,7 @@ export default function ProfilePage() {
       <div className="max-w-6xl mx-auto px-6 py-10">
         <div className="bg-white shadow-sm border border-gray-100 rounded-md max-w-3xl mx-auto">
           <div className="px-10 py-8">
-            <h2 className="text-teal-700 font-semibold text-lg mb-6">
+            <h2 className="text-blue-700 font-semibold text-lg mb-6">
               Profile
             </h2>
 
@@ -335,7 +335,7 @@ export default function ProfilePage() {
               {!isEditing ? (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium px-10 py-3 rounded-sm transition"
+                  className="bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-10 py-3 rounded-sm transition"
                 >
                   Edit
                 </button>
@@ -351,7 +351,7 @@ export default function ProfilePage() {
                   <button
                     onClick={onSave}
                     disabled={saving}
-                    className="bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium px-10 py-3 rounded-sm transition disabled:opacity-60"
+                    className="bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-10 py-3 rounded-sm transition disabled:opacity-60"
                   >
                     {saving ? "Saving..." : "Save"}
                   </button>

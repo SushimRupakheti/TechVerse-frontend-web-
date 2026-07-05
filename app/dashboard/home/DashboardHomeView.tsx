@@ -3,494 +3,540 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import HomeCard from "@/app/components/homeCard";
+import {
+  ArrowRight,
+  Cpu,
+  Gamepad2,
+  HardDrive,
+  Headphones,
+  Laptop,
+  Menu,
+  Monitor,
+  PackageCheck,
+  ShieldCheck,
+  ShoppingBag,
+  Wrench,
+  Zap,
+} from "lucide-react";
 
-type Props = {
-  items: any[];
-  anyRes?: any;
+type MarketplaceItem = Record<string, unknown>;
+
+type ApiResultMeta = {
+  success?: boolean;
+  message?: string;
 };
 
+type Props = {
+  items: MarketplaceItem[];
+  anyRes?: ApiResultMeta;
+};
+
+const EMPTY_ITEMS: MarketplaceItem[] = [];
+
+// Replace this with your final hero image later, for example: "/techverse-hero.png".
+const HERO_IMAGE = "/bg.png";
+
+const QUICK_CATEGORIES = [
+  {
+    label: "Laptops",
+    icon: Laptop,
+    terms: ["laptop", "notebook", "macbook"],
+    image: "/laptop1.png",
+    desc: "Find great laptops",
+  },
+  {
+    label: "Desktops",
+    icon: Monitor,
+    terms: ["desktop", "pc", "computer", "tower"],
+    image: "/desktop.png",
+    desc: "Powerful desktops",
+  },
+  {
+    label: "Graphics Cards",
+    icon: Gamepad2,
+    terms: ["gpu", "graphics", "rtx", "gtx"],
+    image: "/graphic.png",
+    desc: "Top GPU brands",
+  },
+  {
+    label: "Processors",
+    icon: Cpu,
+    terms: ["cpu", "processor", "intel", "amd"],
+    image: "/processor.png",
+    desc: "Intel and AMD CPUs",
+  },
+  {
+    label: "RAM",
+    icon: PackageCheck,
+    terms: ["ram", "memory", "ddr4", "ddr5"],
+    image: "/ram.png",
+    desc: "DDR4, DDR5 and more",
+  },
+  {
+    label: "Storage",
+    icon: HardDrive,
+    terms: ["ssd", "hdd", "storage", "drive"],
+    image: "/storage.png",
+    desc: "HDDs, SSDs and more",
+  },
+];
+
+const SIDEBAR_CATEGORIES = [
+  "Laptops",
+  "Desktops",
+  "Graphics Cards",
+  "Processors",
+  "Motherboards",
+  "RAM",
+  "Storage",
+  "Monitors",
+  "Accessories",
+];
+
+function getStringField(item: MarketplaceItem, key: string) {
+  const value = item[key];
+  return value === null || value === undefined ? "" : String(value);
+}
+
+function getItemKey(item: MarketplaceItem) {
+  return (
+    getStringField(item, "_id") ||
+    getStringField(item, "id") ||
+    getStringField(item, "phoneModel") ||
+    getStringField(item, "itemName")
+  );
+}
+
+function getCategory(item: MarketplaceItem) {
+  const candidates = [
+    item.category,
+    item.type,
+    item.brand,
+    item.make,
+    item.manufacturer,
+    item.brandName,
+    item.model,
+  ];
+
+  for (const candidate of candidates) {
+    if (candidate) return String(candidate);
+  }
+
+  if (item.phoneModel) return String(item.phoneModel).split(" ")[0];
+  if (item.itemName) return String(item.itemName).split(" ")[0];
+  return null;
+}
+
+function itemSearchText(item: MarketplaceItem) {
+  return [
+    item.category,
+    item.type,
+    item.brand,
+    item.phoneModel,
+    item.itemName,
+    item.title,
+    item.description,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+function filterMatches(item: MarketplaceItem, label: string) {
+  const config = QUICK_CATEGORIES.find((category) => category.label === label);
+  if (!config) return getCategory(item) === label;
+
+  const text = itemSearchText(item);
+  return config.terms.some((term) => text.includes(term.toLowerCase()));
+}
+
 export default function DashboardHomeView({
-  items: initialItems = [],
+  items: initialItems = EMPTY_ITEMS,
   anyRes,
 }: Props) {
   const [showOnlyProducts, setShowOnlyProducts] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const items = initialItems || [];
+  const items = initialItems;
 
-  const getCategory = (it: any) => {
-    const candidates = [
-      it?.brand,
-      it?.make,
-      it?.manufacturer,
-      it?.brandName,
-      it?.model,
-      it?.category,
-      it?.type,
-    ];
-    for (const c of candidates) {
-      if (c) return String(c);
-    }
-    if (it?.phoneModel) return String(it.phoneModel).split(" ")[0];
-    if (it?.itemName) return String(it.itemName).split(" ")[0];
-    return null;
-  };
-
-  const categories = useMemo(
+  const backendCategories = useMemo(
     () => Array.from(new Set(items.map(getCategory).filter(Boolean))) as string[],
     [items]
   );
 
   const filteredItems = useMemo(() => {
     if (!selectedCategory) return items;
-    return items.filter((it: any) => getCategory(it) === selectedCategory);
+    return items.filter((item) => filterMatches(item, selectedCategory));
   }, [items, selectedCategory]);
 
-  // sections (Trending + New items) use same card design (HomeCard)
-  const trendingItems = filteredItems.slice(0, 8);
-  const newItems = filteredItems.slice(8, 16);
+  const latestItems = filteredItems.slice(0, 8);
+  const moreItems = filteredItems.slice(8, 16);
 
-  /* =========================
-     PRODUCTS-ONLY VIEW (See All)
-  ========================= */
+  const selectCategory = (category: string | null) => {
+    setSelectedCategory(category);
+    setShowOnlyProducts(false);
+  };
+
   if (showOnlyProducts) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-10">
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Products</h2>
-          <button
-            onClick={() => setShowOnlyProducts(false)}
-            className="rounded-xl border px-4 py-2 text-sm"
-          >
-            Back
-          </button>
-        </div>
-
-        <div className="mb-6">
-          <div className="flex items-center gap-3">
-            <span className="h-7 w-2 rounded bg-teal-700" />
+      <main className="bg-[#f5f8ff] text-slate-900">
+        <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-xs font-semibold text-teal-700">Categories</p>
-              <h3 className="text-lg font-semibold text-gray-900">Browse By Category</h3>
+              <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+                TechVerse Market
+              </p>
+              <h1 className="mt-1 text-2xl font-semibold text-slate-950">
+                Browse all computers and PC parts
+              </h1>
             </div>
+            <button
+              type="button"
+              onClick={() => setShowOnlyProducts(false)}
+              className="rounded-md border border-blue-100 bg-white px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50"
+            >
+              Back to storefront
+            </button>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mb-6 flex flex-wrap gap-2">
             <button
+              type="button"
               onClick={() => setSelectedCategory(null)}
-              className={`rounded-md border px-3 py-1 text-sm ${
-                !selectedCategory ? "bg-teal-700 text-white" : "bg-white text-gray-700"
+              className={`rounded-md border px-3 py-2 text-sm ${
+                !selectedCategory
+                  ? "border-blue-700 bg-blue-700 text-white"
+                  : "border-blue-100 bg-white text-slate-700"
               }`}
             >
-              All
+              All Products
             </button>
 
-            {categories.map((c) => (
-              <button
-                key={c}
-                onClick={() => setSelectedCategory(c)}
-                className={`rounded-md border px-3 py-1 text-sm ${
-                  selectedCategory === c ? "bg-teal-700 text-white" : "bg-white text-gray-700"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {filteredItems && filteredItems.length ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {filteredItems.map((item: any) => (
-              <HomeCard key={item._id ?? item.id ?? item.phoneModel} item={item} />
-            ))}
-          </div>
-        ) : (
-          <div className="py-10 text-center text-gray-500">
-            <div>No products found</div>
-            {anyRes?.success === false && (
-              <div className="mt-2 text-xs text-red-500">
-                {anyRes.message || "Fetch failed"}
-              </div>
+            {[...QUICK_CATEGORIES.map((c) => c.label), ...backendCategories].map(
+              (category) => (
+                <button
+                  type="button"
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`rounded-md border px-3 py-2 text-sm ${
+                    selectedCategory === category
+                      ? "border-blue-700 bg-blue-700 text-white"
+                      : "border-blue-100 bg-white text-slate-700"
+                  }`}
+                >
+                  {category}
+                </button>
+              )
             )}
           </div>
-        )}
-      </div>
+
+          {filteredItems.length ? (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 sm:gap-6">
+              {filteredItems.map((item) => (
+                <HomeCard key={getItemKey(item)} item={item} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-md border border-blue-100 bg-white py-14 text-center text-sm text-slate-500">
+              <div>No hardware found</div>
+              {anyRes?.success === false && (
+                <div className="mt-2 text-xs text-red-500">
+                  {anyRes.message || "Fetch failed"}
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+      </main>
     );
   }
 
-  /* =========================
-     HOME UI (Like screenshot)
-  ========================= */
   return (
-    <main className="w-full">
-      {/* HERO */}
-      <section className="relative overflow-hidden bg-teal-700">
-        {/* soft waves */}
-        <div className="pointer-events-none absolute inset-0 opacity-25">
-          <div className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-white/20" />
-          <div className="absolute left-52 -top-24 h-96 w-96 rounded-full bg-white/10" />
-          <div className="absolute right-10 top-24 h-80 w-80 rounded-full bg-white/10" />
-        </div>
+    <main className="bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.12),_transparent_30%),linear-gradient(180deg,_#f7faff_0%,_#eef5ff_45%,_#f8fafc_100%)] text-slate-900">
+      <section className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[250px_minmax(0,1fr)] lg:px-8">
+        <aside className="rounded-lg border border-blue-100 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+              <span className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-700 text-white">
+                <Menu className="h-4 w-4" />
+              </span>
+              Categories
+            </div>
+            <span className="rounded-full bg-blue-50 px-2 py-1 text-[11px] font-semibold text-blue-700">
+              {SIDEBAR_CATEGORIES.length}
+            </span>
+          </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 md:py-16">
-          <div className="grid grid-cols-1 items-center gap-10 md:grid-cols-2">
-            {/* Left text */}
-            <div className="text-white">
-              <p className="mb-3 text-sm text-white/80">
-                Explore the greatest laptop and computer marketplace
-              </p>
+          <div className="space-y-1">
+            {SIDEBAR_CATEGORIES.map((category) => {
+              const iconConfig =
+                QUICK_CATEGORIES.find((item) => item.label === category) ||
+                QUICK_CATEGORIES.find((item) => category.includes(item.label));
+              const Icon = iconConfig?.icon || Wrench;
+              const active = selectedCategory === category;
 
-              <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
-                TechVerse <br /> Bazar
-              </h1>
-
-              <p className="mt-4 max-w-md leading-relaxed text-white/85">
-                “Your trusted second hand marketplace”
-              </p>
-
-              <div className="mt-7 flex flex-wrap gap-3">
-                <button className="rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-teal-800 hover:bg-white/90">
-                  Buy Now!
+              return (
+                <button
+                  type="button"
+                  key={category}
+                  onClick={() => selectCategory(active ? null : category)}
+                  className={`flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm transition ${
+                    active
+                      ? "bg-blue-700 text-white shadow-sm"
+                      : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {category}
                 </button>
-                <button className="rounded-xl border border-white/40 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10">
-                  See More
-                </button>
-              </div>
-            </div>
-
-            {/* Right laptop (dummy images) */}
-            <div className="flex justify-center md:justify-end">
-              <div className="relative h-60 w-full max-w-md sm:h-80">
-                {/* main laptop */}
-                <div className="absolute inset-0">
-                  <div className="relative h-full w-full">
-                    <Image
-                      src="/laptop1.png"
-                      alt="Hero laptop"
-                      fill
-                      className="object-contain"
-                      priority
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+              );
+            })}
           </div>
 
-          {/* slider dots (static) */}
-          <div className="mt-8 flex items-center justify-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-white/60" />
-            <span className="h-2 w-2 rounded-full bg-white/60" />
-            <span className="h-2 w-2 rounded-full bg-white" />
-            <span className="h-2 w-2 rounded-full bg-white/60" />
-            <span className="h-2 w-2 rounded-full bg-white/60" />
+          <button
+            type="button"
+            onClick={() => setShowOnlyProducts(true)}
+            className="mt-5 flex w-full items-center justify-between rounded-md bg-slate-950 px-3 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
+          >
+            View All Categories
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        </aside>
+
+        <div className="relative overflow-hidden rounded-lg bg-slate-950 text-white shadow-[0_24px_70px_rgba(15,23,42,0.22)]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_28%,_rgba(59,130,246,0.45),_transparent_36%),linear-gradient(135deg,_#0f172a_0%,_#0b4fd8_48%,_#0891ff_100%)]" />
+          <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full border border-white/10" />
+          <div className="absolute bottom-8 right-10 hidden rounded-lg border border-white/15 bg-white/10 px-4 py-3 text-xs text-blue-50 backdrop-blur md:block">
+            <div className="font-semibold text-white">Verified Tech Deals</div>
+            <div className="mt-1">Fresh laptops, PCs, GPUs and upgrades</div>
           </div>
-        </div>
-      </section>
 
-      {/* TRUST BADGES */}
-      <section className="bg-white mt-8">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-8 text-center sm:grid-cols-3">
-            {[
-              {
-                img: "/icons/icon1.png", // dummy
-                title: "TRUSTED BY MANY",
-                desc: "Trusted by numbers of people across the country",
-              },
-              {
-                img: "/icons/icon2.png", // dummy
-                title: "24/7 CUSTOMER SERVICE",
-                desc: "Friendly 24/7 customer support",
-              },
-              {
-                img: "/icons/icon3.png", // dummy
-                title: "MONEY BACK GUARANTEE",
-                desc: "Cashback within 10 days of return",
-              },
-            ].map((b) => (
-              <div key={b.title} className="flex flex-col items-center">
-                <div className="relative mb-3 h-20 w-20 rounded-full bg-teal-700/10 ring-4 ring-teal-700/10">
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Image
-                          src={b.img}
-                          alt={b.title}
-                          width={36}
-                          height={36}
-                          className="object-contain"
-                        />
-                      </div>
-                    </div>
-                <p className="text-sm font-semibold text-gray-900">{b.title}</p>
-                <p className="mt-1 max-w-xs text-xs text-gray-500">{b.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* REFURBISHED WITH CARE */}
-      <section className="bg-white mt-8">
-        <div className="mx-auto max-w-7xl px-4 pt-6 pb-12 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:items-center">
-            {/* left image */}
-            <div className="relative h-56 overflow-hidden rounded-2xl bg-gray-100 sm:h-72">
-              <Image
-                src="/Refurbished.png" // dummy
-                alt="Refurbished"
-                fill
-                className="object-cover"
-              />
-            </div>
-
-            {/* right content */}
+          <div className="relative grid min-h-[440px] grid-cols-1 items-center gap-6 px-7 py-8 md:grid-cols-[minmax(0,0.82fr)_minmax(430px,1.18fr)] md:px-10">
             <div>
-              <h3 className="text-2xl font-semibold text-gray-900">Refurbished With Care</h3>
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-blue-50 backdrop-blur">
+                <Zap className="h-3.5 w-3.5 text-cyan-200" />
+                Nepal&apos;s computer marketplace
+              </div>
+              <h1 className="max-w-lg text-4xl font-bold leading-tight sm:text-5xl">
+                Find the right tech for your next upgrade.
+              </h1>
+              <p className="mt-5 max-w-md text-sm leading-6 text-blue-50">
+                Buy and sell laptops, gaming PCs, components, monitors, and
+                accessories from one focused TechVerse marketplace.
+              </p>
 
-              <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="mt-8 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowOnlyProducts(true)}
+                  className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-3 text-sm font-semibold text-blue-700 hover:bg-blue-50"
+                >
+                  Shop Now
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  className="rounded-md border border-white/50 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10"
+                >
+                  Sell Your Tech
+                </button>
+              </div>
+
+              <div className="mt-8 grid max-w-md grid-cols-3 gap-3">
                 {[
-                  {
-                    title: "Refurbished",
-                    desc: "Full equipment on all items",
-                    icon: "/icons/icon4.png", // dummy
-                  },
-                  {
-                    title: "Warranty",
-                    desc: "Warranty up to 2 years",
-                    icon: "/icons/icon5.png", // dummy
-                  },
-                  {
-                    title: "Eco-friendly",
-                    desc: "We use eco friendly packaging",
-                    icon: "/icons/icon6.png", // dummy
-                  },
-                  {
-                    title: "Cross check",
-                    desc: "Fully cross checked and examined",
-                    icon: "/icons/icon7.png", // dummy
-                  },
-                ].map((f) => (
-                  <div key={f.title} className="flex items-start gap-3">
-                    <div className="relative mt-0.5 h-10 w-10 shrink-0 rounded-full bg-teal-700/10">
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Image
-                          src={f.icon}
-                          alt={f.title}
-                          width={18}
-                          height={18}
-                          className="object-contain"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{f.title}</p>
-                      <p className="text-xs text-gray-500">{f.desc}</p>
-                    </div>
+                  ["12K+", "Listings"],
+                  ["4.8", "Rating"],
+                  ["24h", "Review"],
+                ].map(([value, label]) => (
+                  <div key={label} className="rounded-md border border-white/15 bg-white/10 p-3 backdrop-blur">
+                    <div className="text-lg font-bold">{value}</div>
+                    <div className="mt-0.5 text-[11px] text-blue-100">{label}</div>
                   </div>
                 ))}
               </div>
             </div>
+
+            <div className="relative min-h-[350px] md:min-h-[410px]">
+              <Image
+                src={HERO_IMAGE}
+                alt="TechVerse computer products"
+                fill
+                className="scale-[1.15] object-contain drop-shadow-2xl md:scale-[1.3]"
+                priority
+              />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* CATEGORIES */}
-      <section className="bg-gray-50">
-        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <span className="h-7 w-2 rounded bg-teal-700" />
-            <div>
-              <p className="text-xs font-semibold text-teal-700">Categories</p>
-              <h2 className="text-2xl font-semibold text-gray-900">Browse By Category</h2>
-            </div>
-          </div>
-
-          <div className="mt-5 flex flex-wrap gap-2">
-            <button
-              onClick={() => setSelectedCategory(null)}
-              className={`rounded-md border px-3 py-1 text-sm ${
-                !selectedCategory ? "bg-teal-700 text-white" : "bg-white text-gray-700"
-              }`}
-            >
-              All
-            </button>
-
-            {categories.map((c) => (
-              <button
-                key={c}
-                onClick={() => setSelectedCategory(c)}
-                className={`rounded-md border px-3 py-1 text-sm ${
-                  selectedCategory === c ? "bg-teal-700 text-white" : "bg-white text-gray-700"
+      <section className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-0 rounded-lg border border-blue-100 bg-white/95 shadow-[0_18px_45px_rgba(15,23,42,0.07)] md:grid-cols-4">
+          {[
+            {
+              icon: ShieldCheck,
+              title: "Safe & Secure",
+              desc: "Secure payments and trusted sellers",
+            },
+            {
+              icon: PackageCheck,
+              title: "Quality Assured",
+              desc: "Verified listings and quality checked",
+            },
+            {
+              icon: ShoppingBag,
+              title: "Great Deals",
+              desc: "Best prices on new and used tech",
+            },
+            {
+              icon: Headphones,
+              title: "Easy Listing",
+              desc: "List your products quickly and free",
+            },
+          ].map((feature, index) => {
+            const Icon = feature.icon;
+            return (
+              <div
+                key={feature.title}
+                className={`flex gap-3 p-5 ${
+                  index ? "border-t border-blue-100 md:border-l md:border-t-0" : ""
                 }`}
               >
-                {c}
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-blue-50 to-cyan-50">
+                  <Icon className="h-5 w-5 text-blue-700" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-semibold text-slate-950">
+                    {feature.title}
+                  </h2>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    {feature.desc}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
+        <div className="mb-5 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+              Browse by hardware
+            </p>
+            <h2 className="mt-1 text-2xl font-semibold text-slate-950">
+              Popular Categories
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowOnlyProducts(true)}
+            className="inline-flex items-center gap-2 rounded-md border border-blue-100 bg-white px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm hover:bg-blue-50"
+          >
+            View All
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+          {QUICK_CATEGORIES.map((category) => {
+            const Icon = category.icon;
+            const active = selectedCategory === category.label;
+            return (
+              <button
+                type="button"
+                key={category.label}
+                onClick={() => selectCategory(active ? null : category.label)}
+                className={`group rounded-lg border bg-white p-4 text-center shadow-[0_12px_30px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_18px_45px_rgba(37,99,235,0.13)] ${
+                  active ? "border-blue-700 ring-2 ring-blue-100" : "border-blue-100"
+                }`}
+              >
+                <div className="relative mx-auto h-24 w-full rounded-md bg-gradient-to-br from-slate-50 to-blue-50 p-2">
+                  <Image
+                    src={category.image}
+                    alt={category.label}
+                    fill
+                    className="object-contain p-2 transition duration-300 group-hover:scale-110"
+                    sizes="180px"
+                  />
+                </div>
+                <div className="mt-4 flex items-center justify-center gap-1.5 text-sm font-semibold text-slate-950">
+                  <Icon className="h-4 w-4 text-blue-700" />
+                  {category.label}
+                </div>
+                <p className="mt-1 text-xs text-slate-500">{category.desc}</p>
               </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
+        <div className="mb-5 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+              Fresh marketplace
+            </p>
+            <h2 className="mt-1 text-2xl font-semibold text-slate-950">
+              Latest Listings
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowOnlyProducts(true)}
+            className="inline-flex items-center gap-2 rounded-md border border-blue-100 bg-white px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm hover:bg-blue-50"
+          >
+            View All Listings
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 sm:gap-5">
+          {latestItems.length ? (
+            latestItems.map((item) => (
+              <HomeCard key={getItemKey(item)} item={item} />
+            ))
+          ) : (
+            <div className="col-span-full rounded-md border border-blue-100 bg-white py-12 text-center text-sm text-slate-500">
+              <div>No listings found</div>
+              {anyRes?.success === false && (
+                <div className="mt-2 text-xs text-red-500">
+                  {anyRes.message || "Fetch failed"}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {moreItems.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
+          <div className="mb-5 flex items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+                Recommended
+              </p>
+              <h2 className="mt-1 text-2xl font-semibold text-slate-950">
+                More Tech Deals
+              </h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowOnlyProducts(true)}
+              className="inline-flex items-center gap-2 rounded-md border border-blue-100 bg-white px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm hover:bg-blue-50"
+            >
+              See More
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 sm:gap-5">
+            {moreItems.map((item) => (
+              <HomeCard key={getItemKey(item)} item={item} />
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* TRENDING PRODUCTS */}
-      <section className="bg-gray-50">
-        <div className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <span className="h-7 w-2 rounded bg-teal-700" />
-              <div>
-                <p className="text-xs font-semibold text-teal-700">Trending</p>
-                <h2 className="text-2xl font-semibold text-gray-900">Trending Products</h2>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowOnlyProducts(true)}
-              className="rounded-md border border-teal-200 bg-white px-4 py-2 text-xs font-semibold text-teal-800 hover:bg-gray-50"
-            >
-              See All
-            </button>
-          </div>
-
-          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 sm:gap-6">
-            {trendingItems.length ? (
-              trendingItems.map((item: any) => (
-                <HomeCard key={item._id ?? item.id ?? item.phoneModel} item={item} />
-              ))
-            ) : (
-              <div className="col-span-full py-8 text-center text-gray-500">
-                <div>No products found</div>
-                {anyRes?.success === false && (
-                  <div className="mt-2 text-xs text-red-500">
-                    {anyRes.message || "Fetch failed"}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* NEW ITEMS */}
-      <section className="bg-gray-50">
-        <div className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <span className="h-7 w-2 rounded bg-teal-700" />
-              <div>
-                <p className="text-xs font-semibold text-teal-700">Recommended</p>
-                <h2 className="text-2xl font-semibold text-gray-900">New items</h2>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowOnlyProducts(true)}
-              className="rounded-md border border-teal-200 bg-white px-4 py-2 text-xs font-semibold text-teal-800 hover:bg-gray-50"
-            >
-              See All
-            </button>
-          </div>
-
-          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 sm:gap-6">
-            {(newItems.length ? newItems : trendingItems).length ? (
-              (newItems.length ? newItems : trendingItems).map((item: any) => (
-                <HomeCard key={item._id ?? item.id ?? item.phoneModel} item={item} />
-              ))
-            ) : (
-              <div className="col-span-full py-8 text-center text-gray-500">
-                <div>No products found</div>
-                {anyRes?.success === false && (
-                  <div className="mt-2 text-xs text-red-500">
-                    {anyRes.message || "Fetch failed"}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* OUR SHOPS */}
-      <section className="bg-gray-50">
-        <div className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <span className="h-7 w-2 rounded bg-teal-700" />
-            <div>
-              <p className="text-xs font-semibold text-teal-700">Featured</p>
-              <h2 className="text-2xl font-semibold text-gray-900">Our Shops</h2>
-            </div>
-          </div>
-
-          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-            {/* Left big */}
-            <div className="relative overflow-hidden rounded-2xl bg-black md:col-span-1 md:row-span-2 h-72 md:h-full">
-              <Image
-                src="/shop1.jpg" // dummy
-                alt="Shop 1"
-                fill
-                className="object-cover opacity-80"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/10" />
-              <div className="absolute bottom-6 left-6 right-6 text-white">
-                <p className="text-lg font-semibold">NewRoad, Kathmandu</p>
-                <p className="mt-2 text-xs text-white/80">
-                  Grand Opening on March 5, Warm Welcome to All..
-                </p>
-                <button className="mt-3 text-xs font-semibold underline underline-offset-4">
-                  View Location
-                </button>
-              </div>
-            </div>
-
-            {/* Right column: top wide */}
-            <div className="relative overflow-hidden rounded-2xl bg-black md:col-span-2 h-40">
-              <Image
-                src="/shop2.jpg" // dummy
-                alt="Shop 2"
-                fill
-                className="object-cover opacity-80"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/25 to-black/10" />
-              <div className="absolute left-6 top-1/2 -translate-y-1/2 text-white">
-                <p className="text-lg font-semibold">Gundu, Bhaktapur</p>
-                <p className="mt-2 max-w-md text-xs text-white/80">
-                  Opening Hrs: 7AM-10PM
-                </p>
-                <button className="mt-3 text-xs font-semibold underline underline-offset-4">
-                  Shop Now
-                </button>
-              </div>
-            </div>
-
-            {/* Right column: bottom 2 cards */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:col-span-2">
-              {[
-                {
-                  title: "Gongabu, Buspark",
-                  desc: "Opening Hrs: 7AM-10PM",
-                  img: "/shop3.jpg", // dummy
-                },
-                {
-                  title: "Imadol, Lalitpur",
-                  desc: "Opening Hrs: 7AM-10PM",
-                  img: "/shop4.jpg", // dummy
-                },
-              ].map((s) => (
-                <div key={s.title} className="relative h-40 overflow-hidden rounded-2xl bg-black">
-                  <Image src={s.img} alt={s.title} fill className="object-cover opacity-80" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-black/10" />
-                  <div className="absolute bottom-5 left-5 right-5 text-white">
-                    <p className="text-base font-semibold">{s.title}</p>
-                    <p className="mt-1 text-xs text-white/80">{s.desc}</p>
-                    <button className="mt-2 text-xs font-semibold underline underline-offset-4">
-                      Shop Now
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
     </main>
   );
 }

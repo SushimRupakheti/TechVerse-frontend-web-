@@ -1,40 +1,53 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function AuthHeader() {
+  const pathname = usePathname();
+
+  const linkClass = (href: string) =>
+    pathname === href
+      ? "bg-blue-700 text-white"
+      : "border border-blue-100 bg-white text-blue-700 hover:bg-blue-50";
+
   return (
-    <header className="w-full border-b border-gray-200 bg-white">
-      {/* This container fixes the spacing */}
-      <div className="max-w-[1200px] mx-auto flex items-center justify-between px-6 py-3">
+    <header className="w-full border-b border-blue-100 bg-white/95 backdrop-blur">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+        <Link href="/" className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-50">
+            <Image
+              src="/new_logo.png"
+              alt="TechVerse Logo"
+              width={32}
+              height={32}
+              className="object-contain"
+              priority
+            />
+          </div>
+          <span className="text-xl font-bold text-blue-950">TechVerse</span>
+        </Link>
 
-        {/* LEFT — Logo + Title */}
-        <div className="flex items-center gap-3">
-          <img 
-            src="/Layer_1.png" 
-            alt="ReCell Bazar Logo"
-            className="w-12 h-12 object-contain"
-          />
-          <span className="text-3xl font-semibold text-[#020b23]">ReCell Bazar</span>
-        </div>
-
-        {/* RIGHT — Navigation Buttons */}
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-2">
           <Link
             href="/login"
-            className="primary-btn flex no-underline items-center justify-center h-10 px-8 "
+            className={`flex h-10 items-center justify-center rounded-md px-4 text-sm font-semibold transition ${linkClass(
+              "/login"
+            )}`}
           >
             Log In
           </Link>
 
           <Link
             href="/register"
-            className="secondary-btn flex no-underline items-center justify-center h-10 px-8 border"
+            className={`flex h-10 items-center justify-center rounded-md px-4 text-sm font-semibold transition ${linkClass(
+              "/register"
+            )}`}
           >
-            SignUp
+            Sign Up
           </Link>
         </div>
-
       </div>
     </header>
   );

@@ -26,7 +26,7 @@ export default async function StripeCancelPage({ searchParams }: Props) {
         )}
 
         <div className="mt-7 flex flex-wrap gap-3">
-          <Link href="/" className="rounded-lg bg-teal-700 px-5 py-3 text-sm font-semibold text-white hover:bg-teal-800">
+          <Link href="/" className="rounded-lg bg-blue-700 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-800">
             Browse items
           </Link>
           <Link href="/dashboard" className="rounded-lg border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50">

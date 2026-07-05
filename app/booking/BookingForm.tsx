@@ -233,12 +233,12 @@ export default function BookingForm({ item, user }: { item?: Item; user?: User }
           <label className="mt-4 block text-xs text-gray-600">Time</label>
           <input value={time} onChange={(e)=>setTime(e.target.value)} className="mt-2 w-full rounded-md bg-white px-4 py-3 text-sm border" />
 
-          <button disabled={busy} type="submit" className="mt-6 w-full rounded-md bg-teal-700 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-800 transition">
+          <button disabled={busy} type="submit" className="mt-6 w-full rounded-md bg-blue-700 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-800 transition">
             {busy ? "Redirecting..." : "Pay with Stripe"}
           </button>
 
           {result && (
-            <div className={`mt-4 rounded-md p-3 ${result.success ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-red-50 border border-red-200 text-red-800'}`}>
+            <div className={`mt-4 rounded-md p-3 ${result.success ? 'bg-blue-50 border border-blue-200 text-blue-800' : 'bg-red-50 border border-red-200 text-red-800'}`}>
               <p className="text-sm font-semibold">{result.message}</p>
               <pre className="mt-2 text-xs text-gray-600">{String(result?.raw ?? '')}</pre>
             </div>

@@ -143,7 +143,7 @@ function StripeRedirectContent() {
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-16">
       <div className="mx-auto max-w-xl rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <p className="text-xs uppercase tracking-[0.24em] text-teal-700">Stripe Checkout</p>
+        <p className="text-xs uppercase tracking-[0.24em] text-blue-700">Stripe Checkout</p>
         <h1 className="mt-3 text-2xl font-semibold text-gray-950">
           {error ? "Checkout could not start" : message}
         </h1>
@@ -161,7 +161,7 @@ export default function StripeRedirectPage() {
       fallback={
         <main className="min-h-screen bg-gray-50 px-4 py-16">
           <div className="mx-auto max-w-xl rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-            <p className="text-xs uppercase tracking-[0.24em] text-teal-700">Stripe Checkout</p>
+            <p className="text-xs uppercase tracking-[0.24em] text-blue-700">Stripe Checkout</p>
             <h1 className="mt-3 text-2xl font-semibold text-gray-950">Preparing Stripe Checkout...</h1>
           </div>
         </main>

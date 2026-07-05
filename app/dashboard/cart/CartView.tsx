@@ -11,7 +11,8 @@ import {
   handleRemoveCartItem,
 } from "@/lib/actions/cart-action";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+const BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5050";
 
 function formatNPR(value: unknown) {
   const n = Number(value);
@@ -23,7 +24,7 @@ function normalizePhoto(src: unknown) {
   if (!src) return "/logo.png";
   const value = String(src).trim();
   if (value.startsWith("http://") || value.startsWith("https://")) return value;
-  if (value.startsWith("/")) return `${BASE_URL}${value}`;
+  if (value.startsWith("/uploads")) return `${BASE_URL}${value}`;
   return value;
 }
 
@@ -78,7 +79,7 @@ export default function CartView({
     <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">
+          <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
             Shopping Cart
           </p>
           <h1 className="mt-1 text-2xl font-semibold text-gray-900">Your cart</h1>
@@ -97,7 +98,7 @@ export default function CartView({
           className={`mt-6 rounded-md border px-4 py-3 text-sm ${
             message.toLowerCase().includes("failed") || message.toLowerCase().includes("login")
               ? "border-red-200 bg-red-50 text-red-700"
-              : "border-green-200 bg-green-50 text-green-700"
+              : "border-blue-200 bg-blue-50 text-blue-700"
           }`}
         >
           {message}
@@ -106,8 +107,8 @@ export default function CartView({
 
       {!items.length ? (
         <section className="mt-8 flex min-h-[360px] flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 px-6 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-teal-700/10">
-            <ShoppingBag className="h-7 w-7 text-teal-700" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-700/10">
+            <ShoppingBag className="h-7 w-7 text-blue-700" />
           </div>
           <h2 className="mt-4 text-lg font-semibold text-gray-900">Your cart is empty</h2>
           <p className="mt-2 max-w-md text-sm text-gray-500">
@@ -115,7 +116,7 @@ export default function CartView({
           </p>
           <Link
             href="/dashboard"
-            className="mt-6 rounded-md bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-800"
+            className="mt-6 rounded-md bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-800"
           >
             Browse products
           </Link>
@@ -155,7 +156,7 @@ export default function CartView({
                   <div className="min-w-0">
                     <Link
                       href={productId ? `/item/${productId}` : "/dashboard"}
-                      className="text-base font-semibold text-gray-900 hover:text-teal-700"
+                      className="text-base font-semibold text-gray-900 hover:text-blue-700"
                     >
                       {title}
                     </Link>

@@ -11,7 +11,7 @@ export default function Page() {
 
         <Link
           href="/dashboard/sell/add"
-          className="bg-teal-600 text-white px-5 py-2 rounded-lg hover:bg-teal-700 transition"
+          className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-800 transition"
         >
           Add +
         </Link>

@@ -1,249 +1,252 @@
 import Image from "next/image";
 import {
-  Store,
-  CircleDollarSign,
-  Users,
-  HandCoins,
   BadgeCheck,
+  Clock3,
   Headphones,
+  Lightbulb,
+  PackageCheck,
   ShieldCheck,
+  ShoppingBag,
+  Store,
+  Tag,
+  Users,
 } from "lucide-react";
 
 const STATS = [
   {
-    value: "10.5 K",
-    label: "Sellers active our site",
-    icon: Store,
+    value: "50K+",
+    title: "Happy Customers",
+    desc: "And growing every day",
+    icon: ShoppingBag,
   },
   {
-    value: "803 K",
-    label: "Monthly Productive Sale",
-    icon: CircleDollarSign,
-    highlight: true,
+    value: "100K+",
+    title: "Products Listed",
+    desc: "Across all categories",
+    icon: PackageCheck,
   },
   {
-    value: "45.5 K",
-    label: "Customer active in our site",
-    icon: Users,
+    value: "100%",
+    title: "Safe & Secure",
+    desc: "Trusted by thousands",
+    icon: ShieldCheck,
   },
   {
-    value: "20 M+",
-    label: "Anual gross sale in our site",
-    icon: HandCoins,
+    value: "24/7",
+    title: "Customer Support",
+    desc: "We are here to help",
+    icon: Headphones,
   },
 ];
 
-const FEATURES = [
+const WHY_TECHVERSE = [
   {
-    title: "TRUSTED BY MANY",
-    desc: "Trusted by numbers of people across the country",
+    title: "Trusted & Secure",
+    desc: "We prioritize your safety with secure payments and buyer protection.",
+    icon: ShieldCheck,
+  },
+  {
+    title: "Great Deals",
+    desc: "Find the best prices on new and used tech from trusted sellers.",
+    icon: Tag,
+  },
+  {
+    title: "Easy & Fast",
+    desc: "List, buy, and sell in just a few clicks with a smooth experience.",
+    icon: Clock3,
+  },
+  {
+    title: "Support You Can Count On",
+    desc: "Our support team is always ready to assist you.",
+    icon: Headphones,
+  },
+];
+
+const VALUES = [
+  {
+    title: "Integrity",
+    desc: "We believe in transparency and honest dealings.",
     icon: BadgeCheck,
   },
   {
-    title: "24/7 CUSTOMER SERVICE",
-    desc: "Friendly 24/7 customer support",
-    icon: Headphones,
+    title: "Community",
+    desc: "We build connections and empower our tech community.",
+    icon: Users,
   },
   {
-    title: "MONEY BACK GUARANTEE",
-    desc: "Cashback within 10 days of return",
-    icon: ShieldCheck,
+    title: "Innovation",
+    desc: "We embrace change and continually improve our platform.",
+    icon: Lightbulb,
+  },
+  {
+    title: "Customer First",
+    desc: "Your satisfaction is our top priority.",
+    icon: Store,
   },
 ];
 
 export default function AboutPage() {
   return (
-    <main className="w-full bg-white text-gray-700">
-      <div className="mx-auto max-w-6xl px-6 py-14">
-        {/* OUR STORY */}
-        <section className="grid gap-12 md:grid-cols-2 md:items-start">
-          <div className="max-w-md">
-            <h2 className="text-4xl font-semibold tracking-wide text-teal-700">
-              Our Story
-            </h2>
+    <main className="bg-white text-slate-900">
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-100">
+        <div className="absolute -left-12 -top-16 h-44 w-44 rounded-full border border-blue-200/70" />
+        <div className="absolute right-6 top-24 h-28 w-28 rounded-full bg-blue-100/60" />
+        <div className="absolute bottom-0 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-blue-100/50 blur-3xl" />
 
-            <p className="mt-6 text-xs leading-relaxed text-gray-600">
-              Born out of a passion for sustainable living and ethical
-              craftsmanship, Felt and Wools began with a simple mission: to make
-              everyday essentials feel more natural. What started as a small
-              community initiative has now grown into a full-blown movement —
-              one that empowers local artisans and promotes eco-conscious living.
+        <div className="relative mx-auto grid min-h-[360px] max-w-7xl grid-cols-1 items-center gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(420px,1.1fr)] lg:px-8">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight text-blue-950 sm:text-5xl">
+              About TechVerse
+            </h1>
+            <p className="mt-5 max-w-md text-sm leading-7 text-slate-600">
+              TechVerse is your trusted marketplace to buy and sell computers,
+              laptops, and PC components with confidence and ease.
             </p>
-
-            <p className="mt-4 text-xs leading-relaxed text-gray-600">
-              From cotton balls to cozy shoes, yoga mats to cute cat houses,
-              every product we make tells a story — woven with tradition,
-              sustainability, and heart.
+            <div className="mt-6 h-1 w-14 rounded-full bg-blue-600" />
+            <p className="mt-4 text-sm font-semibold text-blue-700">
+              Technology for Everyone. Marketplace for All.
             </p>
           </div>
 
-          <div className="relative h-44 w-full overflow-hidden rounded-md md:h-52">
+          <div className="relative min-h-[280px]">
             <Image
-              src="/about-1.png"
-              alt="Our Story"
+              src="/bg2.png"
+              alt="TechVerse computers and components"
               fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover"
+              className="scale-110 object-contain drop-shadow-2xl"
               priority
             />
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* VISION */}
-        <section className="mt-12 grid gap-12 md:grid-cols-2 md:items-start">
-          <div>
-            <h3 className="text-xl font-semibold tracking-widest text-teal-700">
-              VISION
-            </h3>
-
-            <p className="mt-4 text-xs leading-relaxed text-gray-600">
-              We envision a world where quality, sustainability, and ethics
-              aren’t buzzwords — they’re the baseline. At Felt and Wools, our
-              vision is to create an ecosystem where every product adds value
-              not just to your home, but to the planet and the people behind the
-              scenes.
+      <section className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[minmax(0,1fr)_520px] lg:px-8">
+        <div>
+          <h2 className="text-2xl font-bold text-blue-950">Our Story</h2>
+          <div className="mt-5 space-y-4 text-sm leading-7 text-slate-600">
+            <p>
+              TechVerse was founded with a simple idea: technology should be
+              accessible to everyone. Whether you are a student looking for your
+              first laptop, a gamer upgrading your setup, or a professional
+              selling your old gear, we are here to make the process safe,
+              simple, and rewarding.
             </p>
-
-            <p className="mt-4 text-xs leading-relaxed text-gray-600">
-              The fast fashion, fast-consumption world has caused burnout — both
-              for people and the Earth. We’re flipping that script by creating
-              timeless, cotton-based goods made with soul and sustainability at
-              the core.
-            </p>
-
-            <p className="mt-4 text-xs leading-relaxed text-gray-600">
-              We want to be the brand that sparks real change — one that
-              inspires others to buy less, choose better, and think deeper. Our
-              vision is bold, but so are we. A future where mindful shopping
-              becomes the norm? That’s what we’re building — not just for us,
-              but for the next generation of creators, consumers, and
-              changemakers.
+            <p>
+              We built TechVerse to connect passionate tech buyers and sellers
+              in one secure and reliable platform.
             </p>
           </div>
+        </div>
 
-          {/* smaller image pushed down/right like screenshot */}
-          <div className="flex justify-end">
-            <div className="relative mt-14 h-52 w-full max-w-sm overflow-hidden rounded-md md:mt-20 md:h-56">
-              <Image
-                src="/about-2.png"
-                alt="Vision"
-                fill
-                sizes="(max-width: 768px) 100vw, 40vw"
-                className="object-cover"
-              />
+        <div className="relative min-h-[280px] overflow-hidden rounded-lg border border-blue-100 bg-slate-950 shadow-[0_18px_45px_rgba(15,23,42,0.16)]">
+          <Image
+            src="/shop1.jpg"
+            alt="TechVerse workspace"
+            fill
+            className="object-cover opacity-80"
+            sizes="(max-width: 1024px) 100vw, 520px"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-950/25 to-transparent" />
+          <div className="absolute left-8 top-8 flex items-center gap-3 text-white">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-600">
+              <Store className="h-6 w-6" />
+            </div>
+            <div>
+              <div className="text-xl font-bold">TechVerse</div>
+              <div className="text-xs text-blue-100">
+                Built for modern tech trade
+              </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* STATS + SUSTAINABLE (same row like screenshot) */}
-        <section className="mt-14 grid gap-12 lg:grid-cols-[420px_1fr] lg:items-start">
-          {/* stats cards */}
-          <div className="grid grid-cols-2 gap-5">
-            {STATS.map((s) => {
-              const Icon = s.icon;
-              const isHi = !!s.highlight;
-
-              return (
-                <div
-                  key={s.label}
-                  className={[
-                    "rounded-md border p-6 text-center",
-                    isHi
-                      ? "border-teal-700 bg-teal-700 text-white"
-                      : "border-gray-200 bg-white text-gray-700",
-                  ].join(" ")}
-                >
-                  <div
-                    className={[
-                      "mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full",
-                      isHi ? "bg-white" : "bg-gray-100",
-                    ].join(" ")}
-                  >
-                    <Icon
-                      size={18}
-                      className={isHi ? "text-teal-700" : "text-gray-700"}
-                    />
-                  </div>
-
-                  <div className="text-xl font-semibold">{s.value}</div>
-                  <div
-                    className={[
-                      "mt-2 text-[10px] leading-snug",
-                      isHi ? "text-white/90" : "text-gray-500",
-                    ].join(" ")}
-                  >
-                    {s.label}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* sustainable text */}
-          <div>
-            <h3 className="text-xs font-semibold tracking-widest text-teal-700">
-              SUSTAINABLE
-            </h3>
-            <p className="mt-4 max-w-2xl text-xs leading-relaxed text-gray-600">
-              To us, sustainability isn’t just a side note — it’s the foundation.
-              Every decision we make at Felt and Wools is driven by a long-term
-              commitment to environmental responsibility. We work primarily with
-              natural, biodegradable cotton materials that are locally sourced
-              and processed with minimal environmental impact. Our production
-              process focuses on reducing waste, conserving water, and cutting
-              out harmful chemicals. We use low-impact packaging and are
-              constantly improving how we design for reuse and longevity.
-              Because real sustainability isn’t just about what something is
-              made from — it’s about how long it lasts and where it ends up. We
-              also support circular thinking. From reusing production scraps to
-              exploring compostable packaging, we’re designing systems that do
-              more than just look green — they actually are.
-            </p>
-          </div>
-        </section>
-
-        {/* COMMUNITY EMPOWERMENT */}
-        <section className="mt-12">
-          <h3 className="text-xs font-semibold tracking-widest text-teal-700">
-            COMMUNITY EMPOWERMENT
-          </h3>
-          <p className="mt-4 max-w-5xl text-xs leading-relaxed text-gray-600">
-            To us, sustainability isn’t just a side note — it’s the foundation.
-            Every decision we make at Felt and Wools is driven by a long-term
-            commitment to environmental responsibility. We work primarily with
-            natural, biodegradable cotton materials that are locally sourced and
-            processed with minimal environmental impact. Our production process
-            focuses on reducing waste, conserving water, and cutting out harmful
-            chemicals. We use low-impact packaging and are constantly improving
-            how we design for durability and longevity. Because real
-            sustainability isn’t just about what something is made from — it’s
-            about how long it lasts and where it ends up. We also support
-            circular thinking. From reusing production scraps to exploring
-            compostable packaging, we’re designing systems that do more than
-            just look green — they actually are.
-          </p>
-        </section>
-
-        {/* TRUST / SERVICES */}
-        <section className="mt-14 grid gap-10 md:grid-cols-3">
-          {FEATURES.map((f) => {
-            const Icon = f.icon;
+      <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 overflow-hidden rounded-lg border border-blue-100 bg-gradient-to-br from-white to-blue-50 shadow-[0_18px_45px_rgba(37,99,235,0.09)] sm:grid-cols-2 lg:grid-cols-4">
+          {STATS.map((stat, index) => {
+            const Icon = stat.icon;
             return (
-              <div key={f.title} className="text-center">
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-teal-100">
-                  <Icon size={20} className="text-teal-700" />
+              <div
+                key={stat.title}
+                className={`p-7 text-center ${
+                  index ? "border-t border-blue-100 sm:border-l sm:border-t-0" : ""
+                }`}
+              >
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+                  <Icon className="h-7 w-7" />
                 </div>
-                <h4 className="text-[11px] font-semibold tracking-wide text-gray-800">
-                  {f.title}
-                </h4>
-                <p className="mt-2 text-[10px] leading-relaxed text-gray-500">
-                  {f.desc}
+                <div className="mt-4 text-3xl font-bold text-blue-700">
+                  {stat.value}
+                </div>
+                <h3 className="mt-1 text-sm font-semibold text-blue-950">
+                  {stat.title}
+                </h3>
+                <p className="mt-1 text-xs text-slate-500">{stat.desc}</p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-blue-950">Why TechVerse?</h2>
+          <p className="mt-2 text-sm text-slate-500">
+            We are more than just a marketplace.
+          </p>
+        </div>
+
+        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {WHY_TECHVERSE.map((feature) => {
+            const Icon = feature.icon;
+            return (
+              <div
+                key={feature.title}
+                className="rounded-lg border border-blue-100 bg-white p-6 text-center shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(37,99,235,0.12)]"
+              >
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-700">
+                  <Icon className="h-6 w-6" />
+                </div>
+                <h3 className="mt-4 text-sm font-bold text-blue-950">
+                  {feature.title}
+                </h3>
+                <p className="mt-2 text-xs leading-5 text-slate-500">
+                  {feature.desc}
                 </p>
               </div>
             );
           })}
-        </section>
-      </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-blue-950">Our Values</h2>
+        </div>
+
+        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {VALUES.map((value) => {
+            const Icon = value.icon;
+            return (
+              <div key={value.title} className="flex gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-blue-100 bg-blue-50 text-blue-700">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-blue-950">
+                    {value.title}
+                  </h3>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    {value.desc}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <div className="h-1.5 bg-blue-700" />
     </main>
   );
 }

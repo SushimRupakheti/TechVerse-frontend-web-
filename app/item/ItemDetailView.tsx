@@ -9,15 +9,16 @@ import {
   handleRemoveCartItem,
 } from "@/lib/actions/cart-action";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+const BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5050";
 
 function normalizePhoto(src: any) {
-  if (!src) return "/placeholder-item.png";
+  if (!src) return "/logo.png";
 
   const s = String(src).trim();
 
   if (s.startsWith("http://") || s.startsWith("https://")) return s;
-  if (s.startsWith("/")) return `${BASE_URL}${s}`;
+  if (s.startsWith("/uploads")) return `${BASE_URL}${s}`;
 
   return s;
 }
@@ -50,7 +51,7 @@ export default function ItemDetailView({
     const raw: string[] =
       item?.photos && item.photos.length
         ? item.photos
-        : ["/placeholder-item.png"];
+        : ["/logo.png"];
 
     return raw.map((p) => normalizePhoto(p));
   }, [item]);
@@ -274,7 +275,7 @@ const itemNotice = isSold ? "This item is marked as sold." : "";
                       "relative aspect-square w-20 md:w-24 shrink-0 overflow-hidden rounded-xl border bg-white",
                       "transition-all duration-200",
                       i === safeSelected
-                        ? "border-teal-700 ring-2 ring-teal-700"
+                        ? "border-blue-700 ring-2 ring-blue-700"
                         : "border-gray-200 hover:border-gray-400",
                     ].join(" ")}
                     aria-label={`Select photo ${i + 1}`}
@@ -346,7 +347,7 @@ const itemNotice = isSold ? "This item is marked as sold." : "";
             <div className="mt-3 grid grid-cols-2 gap-3">
               {/* Screen */}
               <div className="flex items-center gap-3 rounded-2xl p-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100">
                   <Image
                     src="/icons/icon8.png"
                     alt="screen"
@@ -431,7 +432,7 @@ const itemNotice = isSold ? "This item is marked as sold." : "";
                     router.push(`/booking/${productId ?? ""}`);
                   }
                 }}
-                className="flex-1 rounded-xl bg-teal-700 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-800 transition disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-600"
+                className="flex-1 rounded-xl bg-blue-700 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-800 transition disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-600"
                 title={
                   isOwnItem
                     ? "You cannot book your own item"
@@ -445,7 +446,7 @@ const itemNotice = isSold ? "This item is marked as sold." : "";
                 type="button"
                 disabled={cartBusy || isOwnItem}
                 onClick={handleCartClick}
-                className="flex-1 rounded-xl border border-teal-700 px-4 py-3 text-sm font-semibold text-teal-700 hover:bg-teal-50 transition disabled:cursor-not-allowed disabled:border-gray-300 disabled:bg-gray-100 disabled:text-gray-500"
+                className="flex-1 rounded-xl border border-blue-700 px-4 py-3 text-sm font-semibold text-blue-700 hover:bg-blue-50 transition disabled:cursor-not-allowed disabled:border-gray-300 disabled:bg-gray-100 disabled:text-gray-500"
                 title={
                   isOwnItem
                     ? "This item is listed by you"
@@ -471,7 +472,7 @@ const itemNotice = isSold ? "This item is marked as sold." : "";
             )}
 
             {!isOwnItem && isInCart && (
-              <p className="mt-3 rounded-md bg-green-50 px-3 py-2 text-xs text-green-700">
+              <p className="mt-3 rounded-md bg-blue-50 px-3 py-2 text-xs text-blue-700">
                 This item is already in your cart.
               </p>
             )}
@@ -480,7 +481,7 @@ const itemNotice = isSold ? "This item is marked as sold." : "";
               <p
                 className={`mt-3 rounded-md px-3 py-2 text-xs ${
                   cartMessageType === "success"
-                    ? "bg-green-50 text-green-700"
+                    ? "bg-blue-50 text-blue-700"
                     : "bg-red-50 text-red-700"
                 }`}
               >

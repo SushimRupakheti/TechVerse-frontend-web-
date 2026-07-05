@@ -28,14 +28,18 @@ function formatNPR(value: any) {
 }
 
 export default function ItemCard({ item }: ItemCardProps) {
-  const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+  const BASE_URL =
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5050";
 
   const rawPhoto = item.photos?.[0];
-  const imageUrl = rawPhoto
-    ? String(rawPhoto).startsWith("http")
-      ? rawPhoto
-      : `${BASE_URL}${rawPhoto}`
-    : "/placeholder.png";
+  const photo = rawPhoto ? String(rawPhoto).trim() : "";
+  const imageUrl = photo
+    ? photo.startsWith("http")
+      ? photo
+      : photo.startsWith("/uploads")
+        ? `${BASE_URL}${photo}`
+        : photo
+    : "/logo.png";
 
   const isLocalImage =
     typeof imageUrl === "string" &&
@@ -98,7 +102,7 @@ export default function ItemCard({ item }: ItemCardProps) {
 
         <div className="mt-2 flex items-center justify-between text-[10.5px] text-gray-500">
           <div className="flex items-center gap-1">
-            <Star className="h-3.5 w-3.5 text-teal-600 fill-teal-600" />
+            <Star className="h-3.5 w-3.5 text-blue-600 fill-blue-600" />
             <span className="font-medium text-gray-700">{rating}</span>
           </div>
 

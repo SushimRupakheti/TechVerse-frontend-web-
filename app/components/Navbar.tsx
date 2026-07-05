@@ -3,12 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Heart, ShoppingCart, User, Search } from "lucide-react";
+import { Heart, ShoppingCart, User, Search, PlusCircle } from "lucide-react";
 
 const LINKS = [
   { href: "/dashboard", label: "Home" },
-  { href: "/dashboard/sell", label: "Sell" },
-  { href: "/dashboard/cart", label: "Cart" },
   { href: "/dashboard/about", label: "About" },
 ];
 
@@ -19,63 +17,69 @@ export default function Navbar() {
     href === "/dashboard" ? pathname === href : pathname?.startsWith(href);
 
   return (
-    <header className="w-full bg-white border-b border-gray-100">
+    <header className="w-full border-b border-blue-800 bg-blue-700 text-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="h-16 flex items-center justify-between gap-6">
+        <div className="flex min-h-16 items-center justify-between gap-5 py-3">
           {/* Left: Logo + Brand */}
           <Link href="/dashboard" className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-teal-50 flex items-center justify-center">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/15">
               <Image
-                src="/logo.png"
-                alt="ReCell Bazar Logo"
+                src="/new_logo.png"
+                alt="TechVerse Logo"
                 width={28}
                 height={28}
                 className="object-contain"
                 priority
               />
             </div>
-            <span className="font-semibold text-gray-900">TechVerse</span>
+            <span className="text-lg font-semibold text-white">TechVerse</span>
           </Link>
 
-          {/* Middle: Links */}
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
-            {LINKS.map((l) => {
-              const active = isActive(l.href);
-              return (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  className={
-                    active
-                      ? "text-teal-700"
-                      : "text-gray-600 hover:text-teal-700 transition"
-                  }
-                >
-                  {l.label}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Right: Search + Icons */}
-          <div className="flex items-center gap-3">
-            {/* Search */}
-            <div className="hidden sm:flex items-center w-[320px] md:w-[360px] lg:w-[420px] bg-gray-100 rounded-full px-4 py-2">
-              <Search className="h-4 w-4 text-gray-500" />
+          <div className="hidden flex-1 items-center sm:flex">
+            <div className="mx-auto flex w-full max-w-xl items-center overflow-hidden rounded-md bg-white">
               <input
                 type="text"
-                placeholder="What are you looking for?"
-                className="bg-transparent outline-none w-full ml-2 text-sm text-gray-700 placeholder:text-gray-500"
+                placeholder="Search laptops, GPUs, SSDs..."
+                className="h-10 w-full bg-transparent px-4 text-sm text-slate-700 outline-none placeholder:text-slate-400"
               />
+              <button
+                type="button"
+                className="flex h-10 w-11 items-center justify-center bg-blue-600 hover:bg-blue-500"
+                aria-label="Search"
+              >
+                <Search className="h-4 w-4 text-white" />
+              </button>
             </div>
+          </div>
+
+          {/* Right: Links + Icons */}
+          <div className="flex items-center gap-2">
+            <nav className="hidden items-center gap-5 text-xs font-medium lg:flex">
+              {LINKS.map((l) => {
+                const active = isActive(l.href);
+                return (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    className={
+                      active
+                        ? "text-white"
+                        : "text-blue-100 transition hover:text-white"
+                    }
+                  >
+                    {l.label}
+                  </Link>
+                );
+              })}
+            </nav>
 
             {/* Wishlist */}
             <button
               type="button"
-              className="relative h-10 w-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition"
+              className="relative flex h-10 w-10 items-center justify-center rounded-md transition hover:bg-white/10"
               aria-label="Wishlist"
             >
-              <Heart className="h-5 w-5 text-gray-700" />
+              <Heart className="h-5 w-5 text-blue-50" />
               <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 rounded-full bg-red-500 text-white text-[11px] flex items-center justify-center">
                 4
               </span>
@@ -84,19 +88,27 @@ export default function Navbar() {
             {/* Cart */}
             <Link
               href="/dashboard/cart"
-              className="h-10 w-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition"
+              className="flex h-10 w-10 items-center justify-center rounded-md transition hover:bg-white/10"
               aria-label="Cart"
             >
-              <ShoppingCart className="h-5 w-5 text-gray-700" />
+              <ShoppingCart className="h-5 w-5 text-blue-50" />
             </Link>
 
             {/* Profile */}
             <Link
               href="/dashboard/profile"
-              className="h-10 w-10 rounded-full bg-teal-700 hover:bg-teal-800 flex items-center justify-center transition"
+              className="flex h-10 w-10 items-center justify-center rounded-md transition hover:bg-white/10"
               aria-label="Profile"
             >
               <User className="h-5 w-5 text-white" />
+            </Link>
+
+            <Link
+              href="/dashboard/sell"
+              className="hidden items-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 md:inline-flex"
+            >
+              <PlusCircle className="h-4 w-4" />
+              Sell Now
             </Link>
           </div>
         </div>
