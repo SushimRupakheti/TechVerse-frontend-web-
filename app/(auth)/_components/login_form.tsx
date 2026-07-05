@@ -38,7 +38,9 @@ const onSubmit = async (data: LoginFormData) => {
     console.log("Normalized role:", role);
 
     // ✅ Save cookies for middleware
-    document.cookie = `token=${result.data.token}; path=/`;
+    if (result.data?.token) {
+      document.cookie = `token=${result.data.token}; path=/`;
+    }
     document.cookie = `role=${role}; path=/`;
 
     setSuccessMessage("Login successful! Redirecting...");

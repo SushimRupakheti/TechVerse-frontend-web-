@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { fetchMyProfile, updateMyProfile } from "@/lib/actions/user-action";
+import { handleLogout } from "@/lib/actions/auth-action";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 // NOTE: use a client-side wrapper to call the server logout API
@@ -162,14 +163,17 @@ export default function ProfilePage() {
             <button
               onClick={async () => {
                 try {
-                  const res = await fetch('/api/auth/logout', { method: 'POST' });
-                  if (res.ok) {
-                    router.replace('/login');
-                  } else {
-                    toast.error('Logout failed');
-                  }
-                } catch (err: any) {
-                  toast.error(err?.message || 'Logout failed');
+                  const res = await handleLogout();
+                  if (!res?.success) throw new Error(res?.message || "Logout failed");
+
+                  document.cookie = "token=; path=/; max-age=0";
+                  document.cookie = "role=; path=/; max-age=0";
+                  localStorage.removeItem("token");
+
+                  router.replace("/login");
+                  router.refresh();
+                } catch (err: unknown) {
+                  toast.error(err instanceof Error ? err.message : "Logout failed");
                 }
               }}
               className="border border-teal-700 text-teal-700 hover:bg-teal-700 hover:text-white text-xs font-medium px-4 py-2 rounded-sm transition"

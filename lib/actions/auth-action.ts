@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { login, register, resetPassword,requestPasswordReset, getUserById, updateUserById } from "../api/auth";
 // import { Cookie } from "next/font/google";
-import { setAuthToken, setUserData } from "../cookie";
+import { clearAuthCookies, setAuthToken, setUserData } from "../cookie";
 import { getAuthToken } from "../cookie";
 import { jwtDecode} from "jwt-decode";
 
@@ -61,21 +61,35 @@ export const handleLogin = async (formData: any) => {
     const result = await login(formData);
 
     if (result.success) {
+      const token = result.token || result.data?.token;
+      if (!token) {
+        return {
+          success: false,
+          message: "Login succeeded but no auth token was returned",
+        };
+      }
+
+      const userData = result.data
+        ? { ...result.data, token }
+        : { token };
+
       // Save token + user data
-      await setAuthToken(result.token);
-      await setUserData(result.data);
+      await setAuthToken(token);
+      await setUserData(userData);
 
       // Get cookies API
       const cookieStore = await cookies();
 
       // Store normalized role for middleware
-      const normalizedRole = result.data.role.toLowerCase();
-      cookieStore.set("role", normalizedRole, { path: "/" });
+      const normalizedRole = userData.role?.toLowerCase();
+      if (normalizedRole) {
+        cookieStore.set("role", normalizedRole, { path: "/" });
+      }
 
       return {
         success: true,
         message: "Login successful",
-        data: result.data,
+        data: userData,
       };
     }
 
@@ -92,11 +106,12 @@ export const handleLogin = async (formData: any) => {
 };
 
 export const handleLogout = async () => {
-  const cookieStore = await cookies();
+  await clearAuthCookies();
 
-  cookieStore.set("auth_token", "", { maxAge: 0 });
-  cookieStore.set("user_data", "", { maxAge: 0 });
-  cookieStore.set("role", "", { maxAge: 0 });
+  return {
+    success: true,
+    message: "Logged out successfully",
+  };
 };
 
 

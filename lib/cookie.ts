@@ -28,9 +28,8 @@ export const setAuthToken = async (token: string) => {
 }
 export const getAuthToken = async () => {
     const cookieStore = await cookies();
-    const token = cookieStore.get("auth_token")?.value;
-      console.log("TOKEN FROM COOKIE:", token);
-      if (!token) return null;
+    const token = cookieStore.get("auth_token")?.value || cookieStore.get("token")?.value;
+      if (!token || token === "undefined" || token === "null") return null;
     return token;
 }
 
@@ -52,7 +51,9 @@ export const getUserData = async () => {
 
 export const clearAuthCookies = async () => {
     const cookieStore = await cookies();
-    cookieStore.delete("auth_token");
-    cookieStore.delete("user_data");
+    cookieStore.set("auth_token", "", { maxAge: 0, path: "/" });
+    cookieStore.set("token", "", { maxAge: 0, path: "/" });
+    cookieStore.set("user_data", "", { maxAge: 0, path: "/" });
+    cookieStore.set("role", "", { maxAge: 0, path: "/" });
 }
 
