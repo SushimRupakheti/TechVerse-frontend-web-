@@ -1,10 +1,17 @@
 "use client";
 
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Heart, ShoppingCart, User, Search, PlusCircle, LogOut } from "lucide-react";
+import { Bell, ShoppingCart, User, Search, PlusCircle, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  deleteNotification,
+  getNotifications,
+  markNotificationAsRead,
+  type NotificationItem,
+} from "@/lib/api/notifications";
 
 const LINKS = [
   { href: "/dashboard", label: "Home" },
@@ -13,10 +20,98 @@ const LINKS = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { isAdmin, isAuthenticated, loading, logout } = useAuth();
+  const { isAdmin, isAuthenticated, loading } = useAuth();
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [notificationError, setNotificationError] = useState("");
+  const notificationRef = useRef<HTMLDivElement | null>(null);
 
   const isActive = (href: string) =>
     href === "/dashboard" ? pathname === href : pathname?.startsWith(href);
+
+  const unreadCount = useMemo(
+    () =>
+      isAuthenticated
+        ? notifications.filter((notification) => !notification.isRead).length
+        : 0,
+    [isAuthenticated, notifications]
+  );
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadNotifications = async () => {
+      try {
+        setNotificationError("");
+        const items = await getNotifications();
+        if (!cancelled) setNotifications(items);
+      } catch (error) {
+        if (!cancelled) {
+          setNotificationError(
+            error instanceof Error ? error.message : "Failed to load notifications"
+          );
+        }
+      }
+    };
+
+    void loadNotifications();
+    const intervalId = window.setInterval(loadNotifications, 60000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    const handlePointerDown = (event: MouseEvent) => {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target as Node)
+      ) {
+        setNotificationOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, []);
+
+  const handleNotificationClick = async (notification: NotificationItem) => {
+    if (notification.isRead) return;
+
+    setNotifications((current) =>
+      current.map((item) =>
+        item._id === notification._id ? { ...item, isRead: true } : item
+      )
+    );
+
+    try {
+      await markNotificationAsRead(notification._id);
+    } catch (error) {
+      setNotificationError(
+        error instanceof Error ? error.message : "Failed to mark notification as read"
+      );
+    }
+  };
+
+  const handleNotificationDelete = async (id: string) => {
+    const previous = notifications;
+    setNotifications((current) => current.filter((item) => item._id !== id));
+
+    try {
+      await deleteNotification(id);
+    } catch (error) {
+      setNotifications(previous);
+      setNotificationError(
+        error instanceof Error ? error.message : "Failed to delete notification"
+      );
+    }
+  };
 
   return (
     <header className="w-full border-b border-blue-800 bg-blue-700 text-white">
@@ -87,17 +182,90 @@ export default function Navbar() {
               ) : null}
             </nav>
 
-            {/* Wishlist */}
-            <button
-              type="button"
-              className="relative flex h-10 w-10 items-center justify-center rounded-md transition hover:bg-white/10"
-              aria-label="Wishlist"
-            >
-              <Heart className="h-5 w-5 text-blue-50" />
-              <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 rounded-full bg-red-500 text-white text-[11px] flex items-center justify-center">
-                4
-              </span>
-            </button>
+            {/* Notifications */}
+            {isAuthenticated ? (
+              <div className="relative" ref={notificationRef}>
+                <button
+                  type="button"
+                  onClick={() => setNotificationOpen((open) => !open)}
+                  className="relative flex h-10 w-10 items-center justify-center rounded-md transition hover:bg-white/10"
+                  aria-label="Notifications"
+                  aria-expanded={notificationOpen}
+                >
+                  <Bell className="h-5 w-5 text-blue-50" />
+                  {unreadCount > 0 ? (
+                    <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] text-white">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  ) : null}
+                </button>
+
+                {notificationOpen ? (
+                  <div className="absolute right-0 top-12 z-50 w-80 overflow-hidden rounded-md border border-slate-200 bg-white text-slate-900 shadow-xl">
+                    <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                      <h2 className="text-sm font-semibold">Notifications</h2>
+                      <span className="text-xs text-slate-500">
+                        {unreadCount} unread
+                      </span>
+                    </div>
+
+                    {notificationError ? (
+                      <div className="border-b border-red-100 bg-red-50 px-4 py-3 text-xs text-red-700">
+                        {notificationError}
+                      </div>
+                    ) : null}
+
+                    <div className="max-h-96 overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <div className="px-4 py-8 text-center text-sm text-slate-500">
+                          No notifications yet.
+                        </div>
+                      ) : (
+                        notifications.map((notification) => (
+                          <div
+                            key={notification._id}
+                            className={
+                              notification.isRead
+                                ? "border-b border-slate-100 bg-white px-4 py-3"
+                                : "border-b border-slate-100 bg-blue-50 px-4 py-3"
+                            }
+                          >
+                            <div className="flex items-start gap-3">
+                              <button
+                                type="button"
+                                onClick={() => void handleNotificationClick(notification)}
+                                className="min-w-0 flex-1 text-left"
+                              >
+                                <p className="text-sm font-semibold text-slate-900">
+                                  {notification.title}
+                                </p>
+                                <p className="mt-1 text-xs leading-5 text-slate-600">
+                                  {notification.message}
+                                </p>
+                                {notification.createdAt ? (
+                                  <p className="mt-2 text-[11px] text-slate-400">
+                                    {new Date(notification.createdAt).toLocaleString()}
+                                  </p>
+                                ) : null}
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => void handleNotificationDelete(notification._id)}
+                                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-slate-400 transition hover:bg-white hover:text-red-600"
+                                aria-label="Delete notification"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
 
             {/* Cart */}
             <Link

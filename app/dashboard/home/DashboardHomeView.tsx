@@ -107,6 +107,13 @@ function getItemKey(item: MarketplaceItem) {
   );
 }
 
+function isSoldItem(item: MarketplaceItem) {
+  const status = getStringField(item, "status").trim().toLowerCase();
+  const isSold = getStringField(item, "isSold").trim().toLowerCase();
+
+  return item.isSold === true || isSold === "true" || status === "sold";
+}
+
 function getCategory(item: MarketplaceItem) {
   const candidates = [
     item.category,
@@ -157,7 +164,10 @@ export default function DashboardHomeView({
   const [showOnlyProducts, setShowOnlyProducts] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const items = initialItems;
+  const items = useMemo(
+    () => initialItems.filter((item) => !isSoldItem(item)),
+    [initialItems]
+  );
 
   const backendCategories = useMemo(
     () => Array.from(new Set(items.map(getCategory).filter(Boolean))) as string[],
