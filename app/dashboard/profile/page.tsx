@@ -3,10 +3,15 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { fetchMyProfile, updateMyProfile } from "@/lib/actions/user-action";
-import { handleLogout } from "@/lib/actions/auth-action";
+import {
+  handleDisableTwoFactor,
+  handleEnableTwoFactor,
+  handleLogout,
+  handleVerifyTwoFactorSetup,
+} from "@/lib/actions/auth-action";
 import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 // NOTE: use a client-side wrapper to call the server logout API
 
 type FormState = {
@@ -15,11 +20,29 @@ type FormState = {
   email: string;
   address: string;
   contactNo: string;
+  twoFactorEnabled: boolean;
 
   currentPassword: string;
   password: string;
   confirmPassword: string;
 };
+
+type ProfilePayload = {
+  firstName: string;
+  lastName: string;
+  address: string;
+  contactNo: string;
+  currentPassword?: string;
+  password?: string;
+};
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
+function getStringField(value: unknown) {
+  return typeof value === "string" ? value : "";
+}
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -34,11 +57,22 @@ export default function ProfilePage() {
     email: "",
     address: "",
     contactNo: "",
+    twoFactorEnabled: false,
 
     currentPassword: "",
     password: "",
     confirmPassword: "",
   });
+  const [twoFactorSetup, setTwoFactorSetup] = useState<{
+    qrCode: string;
+    otpauthUrl: string;
+  } | null>(null);
+  const [twoFactorOtp, setTwoFactorOtp] = useState("");
+  const [twoFactorPassword, setTwoFactorPassword] = useState("");
+  const [twoFactorError, setTwoFactorError] = useState<string | null>(null);
+  const [startingTwoFactor, setStartingTwoFactor] = useState(false);
+  const [verifyingTwoFactor, setVerifyingTwoFactor] = useState(false);
+  const [disablingTwoFactor, setDisablingTwoFactor] = useState(false);
 
   // Load profile data (logged-in user)
   useEffect(() => {
@@ -61,13 +95,14 @@ export default function ProfilePage() {
           email: u.email || "",
           address: u.address || "",
           contactNo: u.contactNo || "",
+          twoFactorEnabled: Boolean(u.twoFactorEnabled),
 
           currentPassword: "",
           password: "",
           confirmPassword: "",
         });
-      } catch (e: any) {
-        setError(e.message || "Failed to load profile");
+      } catch (e: unknown) {
+        setError(getErrorMessage(e, "Failed to load profile"));
       } finally {
         setLoading(false);
       }
@@ -78,6 +113,86 @@ export default function ProfilePage() {
 
   const inputBase =
     "w-full rounded-sm bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder:text-gray-400 outline-none border border-transparent focus:border-blue-600 focus:bg-white transition";
+
+  const validateOtp = (value: string) => /^\d{6}$/.test(value);
+
+  const onStartTwoFactorSetup = async () => {
+    try {
+      setStartingTwoFactor(true);
+      setTwoFactorError(null);
+
+      const res = await handleEnableTwoFactor();
+      if (!res?.success) {
+        setTwoFactorError(res?.message || "Failed to start 2FA setup");
+        return;
+      }
+
+      setTwoFactorSetup({
+        qrCode: getStringField(res.data?.qrCode),
+        otpauthUrl: getStringField(res.data?.otpauthUrl),
+      });
+      setTwoFactorOtp("");
+    } catch (e: unknown) {
+      setTwoFactorError(getErrorMessage(e, "Failed to start 2FA setup"));
+    } finally {
+      setStartingTwoFactor(false);
+    }
+  };
+
+  const onVerifyTwoFactorSetup = async () => {
+    try {
+      setVerifyingTwoFactor(true);
+      setTwoFactorError(null);
+
+      if (!validateOtp(twoFactorOtp)) {
+        setTwoFactorError("Enter a valid 6-digit OTP");
+        return;
+      }
+
+      const res = await handleVerifyTwoFactorSetup(twoFactorOtp);
+      if (!res?.success) {
+        setTwoFactorError(res?.message || "Failed to verify 2FA setup");
+        return;
+      }
+
+      setForm((p) => ({ ...p, twoFactorEnabled: true }));
+      setTwoFactorSetup(null);
+      setTwoFactorOtp("");
+      toast.success(res.message || "Two-factor authentication enabled successfully");
+    } catch (e: unknown) {
+      setTwoFactorError(getErrorMessage(e, "Failed to verify 2FA setup"));
+    } finally {
+      setVerifyingTwoFactor(false);
+    }
+  };
+
+  const onDisableTwoFactor = async () => {
+    try {
+      setDisablingTwoFactor(true);
+      setTwoFactorError(null);
+
+      if (!twoFactorPassword) {
+        setTwoFactorError("Current password is required");
+        return;
+      }
+
+      const res = await handleDisableTwoFactor(twoFactorPassword);
+      if (!res?.success) {
+        setTwoFactorError(res?.message || "Failed to disable 2FA");
+        return;
+      }
+
+      setForm((p) => ({ ...p, twoFactorEnabled: false }));
+      setTwoFactorSetup(null);
+      setTwoFactorOtp("");
+      setTwoFactorPassword("");
+      toast.success(res.message || "Two-factor authentication disabled successfully");
+    } catch (e: unknown) {
+      setTwoFactorError(getErrorMessage(e, "Failed to disable 2FA"));
+    } finally {
+      setDisablingTwoFactor(false);
+    }
+  };
 
   const onSave = async () => {
     try {
@@ -96,7 +211,7 @@ export default function ProfilePage() {
         }
       }
 
-      const payload: any = {
+      const payload: ProfilePayload = {
         firstName: form.firstName,
         lastName: form.lastName,
         address: form.address,
@@ -125,8 +240,8 @@ export default function ProfilePage() {
       }));
 
       setIsEditing(false);
-    } catch (e: any) {
-      setError(e.message || "Update failed");
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, "Update failed"));
     } finally {
       setSaving(false);
     }
@@ -328,6 +443,154 @@ export default function ProfilePage() {
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Two-Factor Authentication Section */}
+            <div className="mt-10 border-t pt-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700">
+                    Two-Factor Authentication
+                  </h3>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Status:{" "}
+                    <span
+                      className={
+                        form.twoFactorEnabled
+                          ? "font-semibold text-green-700"
+                          : "font-semibold text-gray-700"
+                      }
+                    >
+                      {form.twoFactorEnabled ? "Enabled" : "Disabled"}
+                    </span>
+                  </p>
+                </div>
+
+                {!form.twoFactorEnabled && !twoFactorSetup ? (
+                  <button
+                    type="button"
+                    onClick={onStartTwoFactorSetup}
+                    disabled={startingTwoFactor}
+                    className="bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-6 py-3 rounded-sm transition disabled:opacity-60"
+                  >
+                    {startingTwoFactor ? "Starting..." : "Enable 2FA"}
+                  </button>
+                ) : null}
+              </div>
+
+              {twoFactorError ? (
+                <div className="mt-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {twoFactorError}
+                </div>
+              ) : null}
+
+              {twoFactorSetup ? (
+                <div className="mt-5 rounded-md border border-gray-100 bg-gray-50 p-5">
+                  <div className="grid grid-cols-1 gap-5 md:grid-cols-[160px_1fr]">
+                    {twoFactorSetup.qrCode ? (
+                      <Image
+                        src={twoFactorSetup.qrCode}
+                        alt="2FA setup QR code"
+                        width={160}
+                        height={160}
+                        unoptimized
+                        className="h-40 w-40 rounded-sm border border-gray-200 bg-white p-2"
+                      />
+                    ) : null}
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-2">
+                          Manual setup key
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            value={twoFactorSetup.otpauthUrl}
+                            readOnly
+                            className={inputBase + " cursor-text"}
+                          />
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (!twoFactorSetup.otpauthUrl) return;
+                              await navigator.clipboard.writeText(twoFactorSetup.otpauthUrl);
+                              toast.success("Setup URL copied");
+                            }}
+                            className="border border-gray-200 hover:bg-white text-gray-700 text-sm font-medium px-4 py-3 rounded-sm transition"
+                          >
+                            Copy
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-2">
+                          Authentication Code
+                        </label>
+                        <input
+                          value={twoFactorOtp}
+                          onChange={(e) =>
+                            setTwoFactorOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+                          }
+                          inputMode="numeric"
+                          autoComplete="one-time-code"
+                          maxLength={6}
+                          placeholder="123456"
+                          className={inputBase}
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-3 sm:flex-row">
+                        <button
+                          type="button"
+                          onClick={onVerifyTwoFactorSetup}
+                          disabled={verifyingTwoFactor}
+                          className="bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-6 py-3 rounded-sm transition disabled:opacity-60"
+                        >
+                          {verifyingTwoFactor ? "Verifying..." : "Verify setup"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTwoFactorSetup(null);
+                            setTwoFactorOtp("");
+                            setTwoFactorError(null);
+                          }}
+                          disabled={verifyingTwoFactor}
+                          className="border border-gray-200 hover:bg-white text-gray-700 text-sm font-medium px-6 py-3 rounded-sm transition disabled:opacity-60"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              {form.twoFactorEnabled ? (
+                <div className="mt-5 rounded-md border border-gray-100 bg-gray-50 p-5">
+                  <label className="block text-xs font-medium text-gray-700 mb-2">
+                    Current Password
+                  </label>
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <input
+                      type="password"
+                      value={twoFactorPassword}
+                      onChange={(e) => setTwoFactorPassword(e.target.value)}
+                      placeholder="Enter current password"
+                      className={inputBase}
+                    />
+                    <button
+                      type="button"
+                      onClick={onDisableTwoFactor}
+                      disabled={disablingTwoFactor}
+                      className="border border-red-200 text-red-700 hover:bg-red-50 text-sm font-medium px-6 py-3 rounded-sm transition disabled:opacity-60"
+                    >
+                      {disablingTwoFactor ? "Disabling..." : "Disable 2FA"}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             {/* Buttons */}

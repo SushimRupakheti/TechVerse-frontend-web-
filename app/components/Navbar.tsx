@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Heart, ShoppingCart, User, Search, PlusCircle } from "lucide-react";
+import { Heart, ShoppingCart, User, Search, PlusCircle, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const LINKS = [
   { href: "/dashboard", label: "Home" },
@@ -12,6 +13,7 @@ const LINKS = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { isAdmin, isAuthenticated, loading, logout } = useAuth();
 
   const isActive = (href: string) =>
     href === "/dashboard" ? pathname === href : pathname?.startsWith(href);
@@ -71,6 +73,18 @@ export default function Navbar() {
                   </Link>
                 );
               })}
+              {isAdmin ? (
+                <Link
+                  href="/admin/dashboard"
+                  className={
+                    pathname?.startsWith("/admin")
+                      ? "text-white"
+                      : "text-blue-100 transition hover:text-white"
+                  }
+                >
+                  Admin Panel
+                </Link>
+              ) : null}
             </nav>
 
             {/* Wishlist */}
@@ -94,14 +108,34 @@ export default function Navbar() {
               <ShoppingCart className="h-5 w-5 text-blue-50" />
             </Link>
 
-            {/* Profile */}
-            <Link
-              href="/dashboard/profile"
-              className="flex h-10 w-10 items-center justify-center rounded-md transition hover:bg-white/10"
-              aria-label="Profile"
-            >
-              <User className="h-5 w-5 text-white" />
-            </Link>
+            {!loading && !isAuthenticated ? (
+              <div className="hidden items-center gap-2 md:flex">
+                <Link
+                  href="/login"
+                  className="rounded-md border border-white/30 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/register"
+                  className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-50"
+                >
+                  Register
+                </Link>
+              </div>
+            ) : (
+              <>
+                {/* Profile */}
+                <Link
+                  href="/dashboard/profile"
+                  className="flex h-10 w-10 items-center justify-center rounded-md transition hover:bg-white/10"
+                  aria-label="Profile"
+                >
+                  <User className="h-5 w-5 text-white" />
+                </Link>
+
+              </>
+            )}
 
             <Link
               href="/dashboard/sell"

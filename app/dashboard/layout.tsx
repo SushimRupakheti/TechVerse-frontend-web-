@@ -4,6 +4,7 @@ import AdvertisementBar from "../components/AdvertisementBar";
 import Navbar from "../components/Navbar";
 import { redirect } from "next/navigation";
 import { getAuthToken } from "@/lib/cookie";
+import { getOAuthUser } from "@/lib/actions/oauth-action";
 
 export default async function DashboardLayout({
   children,
@@ -11,7 +12,8 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const token = await getAuthToken();
-  if (!token) {
+  const oauthUser = token ? null : await getOAuthUser();
+  if (!token && !oauthUser) {
     redirect("/login");
   }
 

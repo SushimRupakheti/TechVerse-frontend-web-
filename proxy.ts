@@ -10,8 +10,14 @@ const publicPaths = [
 export default function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
-  // support both legacy `token` and the app's `auth_token`
-  const token = req.cookies.get("auth_token")?.value  //|| req.cookies.get("token")?.value;
+  // Support local JWT auth and backend OAuth/session cookies.
+  const token =
+    req.cookies.get("auth_token")?.value ||
+    req.cookies.get("token")?.value ||
+    req.cookies.get("jwt")?.value ||
+    req.cookies.get("access_token")?.value ||
+    req.cookies.get("connect.sid")?.value ||
+    req.cookies.get("session")?.value;
   const role = req.cookies.get("role")?.value;
 
   const isPublicPath = publicPaths.some((p) => path.startsWith(p));
@@ -26,7 +32,7 @@ export default function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  if (isAdminRoute && role !== "admin") {
+  if (isAdminRoute && role && role !== "admin") {
     return NextResponse.redirect(new URL(role ? "/dashboard" : "/login", req.url));
   }
 

@@ -4,6 +4,10 @@
 export const API = {
   AUTH: {
     LOGIN: '/api/auth/login',
+    VERIFY_2FA: "/api/auth/verify-2fa",
+    ENABLE_2FA: "/api/auth/2fa/enable",
+    VERIFY_2FA_SETUP: "/api/auth/2fa/verify-setup",
+    DISABLE_2FA: "/api/auth/2fa/disable",
     REGISTER: '/api/auth/register',
     REQUEST_PASSWORD_RESET: '/api/auth/request-password-reset',
     RESET_PASSWORD: (token: string) => `/api/auth/reset-password/${token}`,

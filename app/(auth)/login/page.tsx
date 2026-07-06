@@ -62,6 +62,14 @@ export default function LoginPage() {
           <div className="flex min-h-[650px] items-center px-5 py-10 sm:px-10 lg:px-12">
             <div className="mx-auto w-full max-w-md">
               <LoginForm />
+              <p className="mt-4 text-center text-sm text-slate-500">
+                <Link
+                  href="/forget_password"
+                  className="font-semibold text-blue-700 hover:text-blue-900"
+                >
+                  Forgot your password?
+                </Link>
+              </p>
               <p className="mt-7 text-center text-sm text-slate-500">
                 Do not have an account?{" "}
                 <Link

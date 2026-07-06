@@ -1,18 +1,72 @@
 "use server";
 import { getAuthUser } from "./auth-action";
+import { getOAuthUser } from "./oauth-action";
 import { getUserById, updateUserById } from "../api/users";
 import { clearAuthCookies } from "../cookie";
 import { logoutUserApi } from "../api/users";
 import axios from "@/lib/api/axios";
 import { getAuthToken } from "../cookie";
 
+const getUserId = (user: { id?: string; _id?: string } | null) =>
+  user?.id || user?._id || "";
+
+type ApiErrorShape = {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+  message?: string;
+};
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+  const apiError = error as ApiErrorShape;
+  return apiError.response?.data?.message || apiError.message || fallback;
+};
+
+const getStringField = (value: unknown) => (typeof value === "string" ? value : "");
+
+const normalizeProfileData = (user: Record<string, unknown>) => {
+  const [firstName = "", ...lastNameParts] =
+    typeof user.name === "string" ? user.name.split(" ") : [];
+
+  return {
+    ...user,
+    firstName: getStringField(user.firstName) || firstName,
+    lastName: getStringField(user.lastName) || lastNameParts.join(" "),
+    email: getStringField(user.email),
+    address: getStringField(user.address),
+    contactNo: getStringField(user.contactNo) || getStringField(user.phone),
+  };
+};
 
 export const fetchMyProfile = async () => {
   const authUser = await getAuthUser();
-  if (!authUser?.id) return { success: false, message: "Not logged in" };
+  if (authUser?.id) {
+    try {
+      const res = await getUserById(authUser.id);
+      if (res?.success && res.data) return res; // { success, data }
+    } catch {
+      // OAuth logins may set a token cookie whose id is not accepted by /api/users/:id.
+      // Fall through to /api/auth/me before reporting an error.
+    }
+  }
 
-  const res = await getUserById(authUser.id);
-  return res; // { success, data }
+  const oauthUser = await getOAuthUser();
+  const oauthUserId = getUserId(oauthUser);
+
+  if (!oauthUser) return { success: false, message: "Not logged in" };
+
+  if (oauthUserId) {
+    try {
+      const res = await getUserById(oauthUserId);
+      if (res?.success && res.data) return res;
+    } catch {
+      // Fall back to /api/auth/me data when the user lookup needs local JWT auth.
+    }
+  }
+
+  return { success: true, data: normalizeProfileData(oauthUser) };
 };
 
 export const updateMyProfile = async (payload: {
@@ -22,9 +76,12 @@ export const updateMyProfile = async (payload: {
   // add more if your backend accepts
 }) => {
   const authUser = await getAuthUser();
-  if (!authUser?.id) return { success: false, message: "Not logged in" };
+  const oauthUser = authUser ? null : await getOAuthUser();
+  const userId = authUser?.id || getUserId(oauthUser);
 
-  const res = await updateUserById(authUser.id, payload);
+  if (!userId) return { success: false, message: "Not logged in" };
+
+  const res = await updateUserById(userId, payload);
   return res;
 };
 
@@ -41,10 +98,10 @@ export const logoutUser = async () => {
       success: true,
       message: "Logged out successfully",
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       success: false,
-      message: error.message || "Logout failed",
+      message: getErrorMessage(error, "Logout failed"),
     };
   }
 };
@@ -64,8 +121,8 @@ export const fetchAdminUsersServer = async (opts?: { page?: number; limit?: numb
 
     const res = await axios.get(url, { headers });
     return res.data; // expects { success, data, meta }
-  } catch (err: any) {
-    return { success: false, message: err.response?.data?.message || err.message || "Failed to fetch admin users" };
+  } catch (err: unknown) {
+    return { success: false, message: getErrorMessage(err, "Failed to fetch admin users") };
   }
 };
 
@@ -77,8 +134,8 @@ export const deleteAdminUserServer = async (id: string) => {
 
     const res = await axios.delete(`/api/admin/users/${id}`, { headers });
     return res.data;
-  } catch (err: any) {
-    return { success: false, message: err.response?.data?.message || err.message || "Failed to delete admin user" };
+  } catch (err: unknown) {
+    return { success: false, message: getErrorMessage(err, "Failed to delete admin user") };
   }
 };
 

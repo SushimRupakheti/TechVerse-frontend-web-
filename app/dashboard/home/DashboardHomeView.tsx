@@ -89,7 +89,7 @@ const SIDEBAR_CATEGORIES = [
   "Motherboards",
   "RAM",
   "Storage",
-  "Monitors",
+  "Monitor",
   "Accessories",
 ];
 

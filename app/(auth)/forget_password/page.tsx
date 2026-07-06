@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { requestPasswordReset } from "@/lib/api/auth";
 import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 
 export const RequestPasswordResetSchema = z.object({
@@ -14,6 +13,10 @@ export const RequestPasswordResetSchema = z.object({
 });
 
 export type RequestPasswordResetDTO = z.infer<typeof RequestPasswordResetSchema>;
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Something went wrong.";
+}
 
 export default function Page() {
   const {
@@ -30,8 +33,8 @@ export default function Page() {
       const response = await requestPasswordReset(data.email);
       if (response.success) toast.success(response.message || "Reset link sent!");
       else toast.error(response.message || "Failed to send reset link.");
-    } catch (error: any) {
-      toast.error(error?.message || "Something went wrong.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error));
     }
   };
 

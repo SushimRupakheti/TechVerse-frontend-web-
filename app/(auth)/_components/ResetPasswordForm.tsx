@@ -49,6 +49,11 @@ export default function ResetPasswordForm({ token }: { token: string }) {
   // Step 2 → Final submission after confirm
   const confirmReset = async () => {
     if (!pendingData) return;
+    if (!token) {
+      toast.error("Reset link is missing or invalid.");
+      setShowConfirmBox(false);
+      return;
+    }
 
     try {
       const response = await handleResetPassword(token, pendingData.password);
@@ -84,6 +89,12 @@ export default function ResetPasswordForm({ token }: { token: string }) {
                 Your new password must be at least 6 characters long.
               </p>
             </div>
+
+            {!token ? (
+              <div className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                This reset link is missing a token. Please request a new password reset link.
+              </div>
+            ) : null}
 
             <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5">
               {/* Password */}
@@ -150,8 +161,8 @@ export default function ResetPasswordForm({ token }: { token: string }) {
 
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="w-full rounded-xl py-3 font-medium text-white bg-blue-600 hover:bg-blue-700"
+                disabled={isSubmitting || !token}
+                className="w-full rounded-xl py-3 font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Reset password
               </button>
