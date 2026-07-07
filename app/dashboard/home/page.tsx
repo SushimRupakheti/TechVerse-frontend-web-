@@ -1,7 +1,25 @@
 import { handleGetAllItems } from "@/lib/actions/item-action";
 import DashboardHomeView from "./DashboardHomeView";
 
-export default async function DashboardHomePage() {
+type SearchParamsInput =
+  | { search?: string | string[] }
+  | Promise<{ search?: string | string[] }>;
+
+function readParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] || "" : value || "";
+}
+
+export default async function DashboardHomePage({
+  searchParams,
+}: {
+  searchParams?: SearchParamsInput;
+}) {
+  const resolvedSearchParams =
+    typeof searchParams === "object" && searchParams !== null && "then" in searchParams
+      ? await searchParams
+      : searchParams || {};
+  const search = readParam(resolvedSearchParams.search).trim();
+
   const res = await handleGetAllItems();
   const apiRes = res as {
     success?: boolean;
@@ -41,5 +59,11 @@ export default async function DashboardHomePage() {
     return !isSold && status !== "sold";
   });
 
-  return <DashboardHomeView items={availableItems} anyRes={apiRes} />;
+  return (
+    <DashboardHomeView
+      items={availableItems}
+      anyRes={apiRes}
+      initialSearchQuery={search}
+    />
+  );
 }

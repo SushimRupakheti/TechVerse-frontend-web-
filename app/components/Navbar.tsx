@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Bell, ShoppingCart, User, Search, PlusCircle, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -14,12 +14,14 @@ import {
 } from "@/lib/api/notifications";
 
 const LINKS = [
-  { href: "/dashboard", label: "Home" },
+  { href: "/dashboard/home", label: "Home" },
   { href: "/dashboard/about", label: "About" },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAdmin, isAuthenticated, loading } = useAuth();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [notificationOpen, setNotificationOpen] = useState(false);
@@ -27,7 +29,9 @@ export default function Navbar() {
   const notificationRef = useRef<HTMLDivElement | null>(null);
 
   const isActive = (href: string) =>
-    href === "/dashboard" ? pathname === href : pathname?.startsWith(href);
+    href === "/dashboard/home"
+      ? pathname === "/dashboard" || pathname === "/dashboard/home"
+      : pathname?.startsWith(href);
 
   const unreadCount = useMemo(
     () =>
@@ -113,12 +117,26 @@ export default function Navbar() {
     }
   };
 
+  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+    const query = String(formData.get("search") || "").trim();
+    if (!query) {
+      router.push("/dashboard/home");
+      return;
+    }
+
+    const params = new URLSearchParams({ search: query });
+    router.push(`/dashboard/home?${params.toString()}`);
+  };
+
   return (
     <header className="w-full border-b border-blue-800 bg-blue-700 text-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex min-h-16 items-center justify-between gap-5 py-3">
           {/* Left: Logo + Brand */}
-          <Link href="/dashboard" className="flex items-center gap-3">
+          <Link href="/dashboard/home" className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/15">
               <Image
                 src="/new_logo.png"
@@ -133,20 +151,26 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden flex-1 items-center sm:flex">
-            <div className="mx-auto flex w-full max-w-xl items-center overflow-hidden rounded-md bg-white">
+            <form
+              onSubmit={handleSearchSubmit}
+              className="mx-auto flex w-full max-w-xl items-center overflow-hidden rounded-md bg-white"
+            >
               <input
                 type="text"
+                name="search"
+                defaultValue={searchParams.get("search") || ""}
+                key={searchParams.get("search") || "empty-search"}
                 placeholder="Search laptops, GPUs, SSDs..."
                 className="h-10 w-full bg-transparent px-4 text-sm text-slate-700 outline-none placeholder:text-slate-400"
               />
               <button
-                type="button"
+                type="submit"
                 className="flex h-10 w-11 items-center justify-center bg-blue-600 hover:bg-blue-500"
                 aria-label="Search"
               >
                 <Search className="h-4 w-4 text-white" />
               </button>
-            </div>
+            </form>
           </div>
 
           {/* Right: Links + Icons */}

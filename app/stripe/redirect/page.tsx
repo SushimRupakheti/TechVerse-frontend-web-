@@ -27,13 +27,6 @@ type OrderData = {
   };
 };
 
-const NPR_PER_USD = Number(process.env.NEXT_PUBLIC_NPR_PER_USD || "133.5");
-
-function nprToStripeUsdAmount(nprAmount: number) {
-  if (!Number.isFinite(nprAmount) || nprAmount <= 0) return 0;
-  return Number((nprAmount / NPR_PER_USD).toFixed(2));
-}
-
 function safeParseOrder(raw: string | null): OrderData | null {
   if (!raw) return null;
   try {
@@ -70,12 +63,11 @@ function StripeRedirectContent() {
 
       const productId = String(order.payment?.pid || order.oid || "");
       const nprAmount = Number(order.payment?.tAmt ?? order.payment?.amt ?? order.amt ?? order.price ?? 0);
-      const stripeUsdAmount = nprToStripeUsdAmount(nprAmount);
       const productName = order.payment?.productName || order.phoneModel || "Booking payment";
       const orderId = String(order.oid || order.refId || `order_${Date.now()}`);
 
       try {
-        if (!stripeUsdAmount) {
+        if (!nprAmount) {
           throw new Error("Invalid payment amount");
         }
 
@@ -89,7 +81,8 @@ function StripeRedirectContent() {
           },
           credentials: "include",
           body: JSON.stringify({
-            amount: stripeUsdAmount,
+            amount: nprAmount,
+            currency: "npr",
             productName,
             productId,
             buyerName: order.payment?.buyerName || order.fullName,
@@ -100,7 +93,7 @@ function StripeRedirectContent() {
             phoneNo: order.phoneNo,
             phoneModel: productName,
             sellerId: order.sellerId,
-            price: stripeUsdAmount,
+            price: nprAmount,
             location: order.location,
             date: order.date,
             time: order.time,
@@ -111,11 +104,8 @@ function StripeRedirectContent() {
               itemId: productId,
               productName,
               email: order.payment?.buyerEmail || order.email,
-              originalCurrency: "NPR",
-              originalPrice: String(nprAmount),
-              stripeCurrency: "USD",
-              stripeAmount: String(stripeUsdAmount),
-              nprPerUsd: String(NPR_PER_USD),
+              currency: "npr",
+              price: String(nprAmount),
             },
           }),
         });

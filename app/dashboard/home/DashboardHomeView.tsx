@@ -29,6 +29,7 @@ type ApiResultMeta = {
 type Props = {
   items: MarketplaceItem[];
   anyRes?: ApiResultMeta;
+  initialSearchQuery?: string;
 };
 
 const EMPTY_ITEMS: MarketplaceItem[] = [];
@@ -157,10 +158,25 @@ function filterMatches(item: MarketplaceItem, label: string) {
   return config.terms.some((term) => text.includes(term.toLowerCase()));
 }
 
+function itemMatchesSearch(item: MarketplaceItem, query: string) {
+  const terms = query
+    .toLowerCase()
+    .split(/\s+/)
+    .map((term) => term.trim())
+    .filter(Boolean);
+
+  if (!terms.length) return true;
+
+  const text = itemSearchText(item);
+  return terms.every((term) => text.includes(term));
+}
+
 export default function DashboardHomeView({
   items: initialItems = EMPTY_ITEMS,
   anyRes,
+  initialSearchQuery = "",
 }: Props) {
+  const searchQuery = initialSearchQuery.trim();
   const [showOnlyProducts, setShowOnlyProducts] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -175,9 +191,13 @@ export default function DashboardHomeView({
   );
 
   const filteredItems = useMemo(() => {
-    if (!selectedCategory) return items;
-    return items.filter((item) => filterMatches(item, selectedCategory));
-  }, [items, selectedCategory]);
+    return items.filter((item) => {
+      const matchesCategory = selectedCategory
+        ? filterMatches(item, selectedCategory)
+        : true;
+      return matchesCategory && itemMatchesSearch(item, searchQuery);
+    });
+  }, [items, selectedCategory, searchQuery]);
 
   const latestItems = filteredItems.slice(0, 8);
   const moreItems = filteredItems.slice(8, 16);
@@ -187,7 +207,7 @@ export default function DashboardHomeView({
     setShowOnlyProducts(false);
   };
 
-  if (showOnlyProducts) {
+  if (showOnlyProducts || searchQuery) {
     return (
       <main className="bg-[#f5f8ff] text-slate-900">
         <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -197,7 +217,9 @@ export default function DashboardHomeView({
                 TechVerse Market
               </p>
               <h1 className="mt-1 text-2xl font-semibold text-slate-950">
-                Browse all computers and PC parts
+                {searchQuery
+                  ? `Search results for "${searchQuery}"`
+                  : "Browse all computers and PC parts"}
               </h1>
             </div>
             <button
