@@ -116,6 +116,10 @@ function isSoldItem(item: MarketplaceItem) {
   return item.isSold === true || isSold === "true" || status === "sold";
 }
 
+function isApprovedItem(item: MarketplaceItem) {
+  return getStringField(item, "status").trim().toLowerCase() === "approved";
+}
+
 function getCategory(item: MarketplaceItem) {
   const candidates = [
     item.category,
@@ -182,7 +186,7 @@ export default function DashboardHomeView({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const router = useRouter();
   const items = useMemo(
-    () => initialItems.filter((item) => !isSoldItem(item)),
+    () => initialItems.filter((item) => isApprovedItem(item) && !isSoldItem(item)),
     [initialItems]
   );
 

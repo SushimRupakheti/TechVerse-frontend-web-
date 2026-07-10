@@ -27,6 +27,22 @@ function formatNPR(value: unknown) {
   return new Intl.NumberFormat("en-NP", { maximumFractionDigits: 0 }).format(n);
 }
 
+function normalizeImageUrl(photo: string, baseUrl: string) {
+  if (!photo) return "/new_logo.png";
+  if (photo.startsWith("/api/uploads")) return photo;
+  if (photo.startsWith("/uploads")) return `${baseUrl}${photo}`;
+  if (photo.startsWith("/") && !photo.startsWith("//")) return photo;
+
+  try {
+    const url = new URL(photo);
+    if (url.protocol === "http:" || url.protocol === "https:") return url.toString();
+  } catch {
+    // Fall through to the safe fallback.
+  }
+
+  return "/new_logo.png";
+}
+
 export default function HomeCard({ item }: HomeCardProps) {
   const BASE_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5050";
@@ -34,17 +50,13 @@ export default function HomeCard({ item }: HomeCardProps) {
   const photos = Array.isArray(item.photos) ? item.photos : [];
   const rawPhoto = photos[0];
   const photo = rawPhoto ? String(rawPhoto).trim() : "";
-  const imageUrl = photo
-    ? photo.startsWith("http")
-      ? photo
-      : photo.startsWith("/uploads")
-        ? `${BASE_URL}${photo}`
-        : photo
-    : "/logo.png";
+  const imageUrl = normalizeImageUrl(photo, BASE_URL);
 
   const isLocalImage =
     typeof imageUrl === "string" &&
-    (imageUrl.includes("localhost") || imageUrl.includes("127.0.0.1"));
+    (imageUrl.includes("localhost") ||
+      imageUrl.includes("127.0.0.1") ||
+      imageUrl.startsWith("/api/uploads"));
 
   const finalPrice = item.finalPrice ?? item.final_price ?? item.price;
   const basePrice = item.basePrice ?? item.base_price;

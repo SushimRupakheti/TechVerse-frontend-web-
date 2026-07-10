@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Navbar from "@/app/components/Navbar";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import {
   handleAddToCart,
@@ -12,18 +12,50 @@ import {
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5050";
 
-function normalizePhoto(src: any) {
-  if (!src) return "/logo.png";
+function normalizePhoto(src: unknown) {
+  if (!src) return "/new_logo.png";
 
   const s = String(src).trim();
 
-  if (s.startsWith("http://") || s.startsWith("https://")) return s;
+  if (s.startsWith("/api/uploads")) return s;
   if (s.startsWith("/uploads")) return `${BASE_URL}${s}`;
+  if (s.startsWith("/") && !s.startsWith("//")) return s;
 
-  return s;
+  try {
+    const url = new URL(s);
+    if (url.protocol === "http:" || url.protocol === "https:") return url.toString();
+  } catch {
+    // Fall through to the safe fallback.
+  }
+
+  return "/new_logo.png";
 }
 
-type Item = any;
+type Item = Record<string, unknown> & {
+  _id?: string;
+  id?: string;
+  photos?: unknown[];
+  sellerId?: unknown;
+  seller?: unknown;
+  finalPrice?: unknown;
+  basePrice?: unknown;
+  phoneModel?: unknown;
+  itemName?: unknown;
+  title?: unknown;
+  status?: unknown;
+  isSold?: unknown;
+  description?: unknown;
+  deviceCondition?: unknown;
+  batteryHealth?: unknown;
+  cameraCondition?: unknown;
+  chargerAvailable?: unknown;
+};
+
+type CartAddResponse = {
+  _id?: string;
+  cartItem?: { _id?: string };
+  data?: { _id?: string };
+};
 
 function getId(value: unknown) {
   if (!value) return null;
@@ -51,7 +83,7 @@ export default function ItemDetailView({
     const raw: string[] =
       item?.photos && item.photos.length
         ? item.photos
-        : ["/logo.png"];
+        : ["/new_logo.png"];
 
     return raw.map((p) => normalizePhoto(p));
   }, [item]);
@@ -59,9 +91,11 @@ export default function ItemDetailView({
   const [selected, setSelected] = useState(0);
 
   const isLocalUrl = (u: string) =>
-    u.includes("localhost") || u.includes("127.0.0.1");
+    u.includes("localhost") ||
+    u.includes("127.0.0.1") ||
+    u.startsWith("/api/uploads");
 
-  const formatNPR = (v: any) => {
+  const formatNPR = (v: unknown) => {
     try {
       const n = Number(v) || 0;
 
@@ -197,7 +231,7 @@ const itemNotice = isSold ? "This item is marked as sold." : "";
       const result = await handleAddToCart(String(productId));
 
       if (result.success) {
-        const added: any = result.data;
+        const added = result.data as CartAddResponse | undefined;
 
         const newCartItemId =
           added?._id ||
@@ -256,7 +290,7 @@ const itemNotice = isSold ? "This item is marked as sold." : "";
         className="grid grid-cols-1 py-5 gap-10 lg:gap-16 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-stretch"
         style={
           mainCardH
-            ? ({ ["--mainCardH" as any]: `${mainCardH}px` } as any)
+            ? ({ "--mainCardH": `${mainCardH}px` } as CSSProperties)
             : undefined
         }
       >

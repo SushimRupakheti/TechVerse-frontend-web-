@@ -1,18 +1,7 @@
 "use server";
 import { cookies } from "next/headers";
-import {jwtDecode} from "jwt-decode";
 
-
-interface UserData {
-    _id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-    createdAt: string;
-    updatedAt: string;
-    [key: string]: any;
-}
+type UserData = Record<string, unknown>;
 
 export const setAuthToken = async (token: string) => {
     const cookieStore = await cookies();
@@ -33,11 +22,17 @@ export const getAuthToken = async () => {
     return token;
 }
 
-export const setUserData = async (userData: any) => {
+export const setUserData = async (userData: UserData) => {
     const cookieStore = await cookies();
     // cookie can only store string values
     // convert object to string -> JSON.stringify
-    cookieStore.set({ name: "user_data", value: JSON.stringify(userData) })
+    cookieStore.set({
+        name: "user_data",
+        value: JSON.stringify(userData),
+        path: "/",
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+    })
 }
 export const getUserData = async () => {
     const cookieStore = await cookies();

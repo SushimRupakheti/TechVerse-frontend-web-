@@ -29,9 +29,13 @@ const getApiErrorMessage = (error: unknown, fallback: string) => {
 
 export const register = async (registerData: Record<string, unknown>) => {
     try{
+        const publicRegisterData = { ...registerData };
+        delete publicRegisterData.role;
+
         const response = await axios.post(
             API.AUTH.REGISTER, // API path '/api/auth/register'
-            registerData // body data
+            publicRegisterData, // body data
+            typeof window !== "undefined" ? { baseURL: "" } : undefined
         );
         return response.data; // what the backend-controller returns
     }catch(err: unknown){
@@ -43,7 +47,8 @@ export const login = async (loginData: Record<string, unknown>) => {
     try{
         const response = await axios.post(
             API.AUTH.LOGIN, // API path '/api/auth/register'
-            loginData // body data
+            loginData, // body data
+            typeof window !== "undefined" ? { baseURL: "" } : undefined
         );
         return response.data; // what the backend-controller returns
     }catch(err: unknown){

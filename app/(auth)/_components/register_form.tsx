@@ -4,8 +4,8 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Home, Lock, Mail, Phone, User } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { handleRegister } from "@/lib/actions/auth-action";
+import { FieldErrors, useForm } from "react-hook-form";
+import { register as registerUser } from "@/lib/api/auth";
 import { registerSchema, RegisterFormData } from "../schema";
 
 function getErrorMessage(error: unknown) {
@@ -18,6 +18,91 @@ const inputShell =
 const inputClass =
   "h-12 w-full bg-transparent px-3 text-sm text-slate-900 outline-none placeholder:text-slate-400";
 
+type RegisterResult = {
+  success?: boolean;
+  message?: string;
+};
+
+function formatErrorLines(message: string) {
+  return message
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => line.replace(/^✖\s*/, "").replace(/^→\s*/, ""));
+}
+
+function cleanBackendErrorLines(message: string) {
+  return message
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) =>
+      line
+        .replace(/^✖\s*/, "")
+        .replace(/^âœ–\s*/, "")
+        .replace(/^→\s*/, "")
+        .replace(/^â†’\s*/, "")
+        .trim()
+    )
+    .filter((line) => !line.startsWith("at "));
+}
+
+function getFriendlyRegistrationErrors(message: string) {
+  const lowerMessage = message.toLowerCase();
+  const hasPasswordValidationError =
+    lowerMessage.includes("password must") || lowerMessage.includes("at password");
+
+  if (hasPasswordValidationError) {
+    return ["Password does not meet the requirements below."];
+  }
+
+  const lines = formatErrorLines(message).flatMap(cleanBackendErrorLines);
+  return lines.length ? lines : ["Registration failed. Please check your details and try again."];
+}
+
+const passwordRequirements = [
+  {
+    label: "At least 8 characters",
+    isMet: (value: string) => value.length >= 8,
+  },
+  {
+    label: "At least one uppercase letter",
+    isMet: (value: string) => /[A-Z]/.test(value),
+  },
+  {
+    label: "At least one number",
+    isMet: (value: string) => /[0-9]/.test(value),
+  },
+  {
+    label: "At least one special character",
+    isMet: (value: string) => /[^A-Za-z0-9]/.test(value),
+  },
+];
+
+function getPasswordRequirementFailures(value: string) {
+  return passwordRequirements
+    .filter((requirement) => !requirement.isMet(value))
+    .map((requirement) => requirement.label.toLowerCase());
+}
+
+function getFirstFormError(errors: FieldErrors<RegisterFormData>) {
+  const orderedFields: Array<keyof RegisterFormData> = [
+    "firstName",
+    "lastName",
+    "email",
+    "address",
+    "contactNo",
+    "password",
+  ];
+
+  for (const field of orderedFields) {
+    const message = errors[field]?.message;
+    if (typeof message === "string") return message;
+  }
+
+  return "Please fix the highlighted fields and try again.";
+}
+
 export default function RegisterForm() {
   const router = useRouter();
   const [error, setError] = useState("");
@@ -26,17 +111,35 @@ export default function RegisterForm() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
+    mode: "onChange",
+    criteriaMode: "all",
+    shouldUnregister: false,
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      address: "",
+      contactNo: "",
+      password: "",
+    },
   });
 
+  const password = watch("password") || "";
   const onSubmit = async (data: RegisterFormData) => {
     setError("");
     setSuccessMessage("");
 
+    if (getPasswordRequirementFailures(data.password).length) {
+      setError("Password does not meet the requirements below.");
+      return;
+    }
+
     try {
-      const result = await handleRegister(data);
+      const result = (await registerUser(data)) as RegisterResult;
       if (!result.success) throw new Error(result.message);
 
       setSuccessMessage("Registration successful. Redirecting to login...");
@@ -44,6 +147,11 @@ export default function RegisterForm() {
     } catch (err) {
       setError(getErrorMessage(err));
     }
+  };
+
+  const onInvalid = (formErrors: FieldErrors<RegisterFormData>) => {
+    setSuccessMessage("");
+    setError(getFirstFormError(formErrors));
   };
 
   return (
@@ -63,7 +171,11 @@ export default function RegisterForm() {
 
       {error ? (
         <div className="mt-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
+          <ul className="space-y-1">
+            {getFriendlyRegistrationErrors(error).map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
         </div>
       ) : null}
 
@@ -73,7 +185,11 @@ export default function RegisterForm() {
         </div>
       ) : null}
 
-      <form className="mt-7 space-y-4" onSubmit={handleSubmit(onSubmit)}>
+      <form
+        className="mt-7 space-y-4"
+        noValidate
+        onSubmit={handleSubmit(onSubmit, onInvalid)}
+      >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label
@@ -205,6 +321,20 @@ export default function RegisterForm() {
           {errors.password ? (
             <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>
           ) : null}
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-slate-500">
+            {passwordRequirements.map((requirement) => {
+              const isMet = requirement.isMet(password);
+
+              return (
+                <li
+                  key={requirement.label}
+                  className={password ? (isMet ? "text-green-700" : "text-red-600") : ""}
+                >
+                  {requirement.label}
+                </li>
+              );
+            })}
+          </ul>
         </div>
 
         <button

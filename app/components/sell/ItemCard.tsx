@@ -2,13 +2,21 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Star } from "lucide-react";
+import { Star, Trash2 } from "lucide-react";
 
-type ItemCardProps = {
-  item: any;
+type SellItem = Record<string, unknown> & {
+  _id?: string;
+  id?: string;
+  photos?: unknown[];
 };
 
-function calcRating(basePrice: any, finalPrice: any) {
+type ItemCardProps = {
+  item: SellItem;
+  onDelete?: (id: string) => void;
+  deleting?: boolean;
+};
+
+function calcRating(basePrice: unknown, finalPrice: unknown) {
   const base = Number(basePrice);
   const finalP = Number(finalPrice);
 
@@ -21,36 +29,68 @@ function calcRating(basePrice: any, finalPrice: any) {
   return Number(rating.toFixed(1));
 }
 
-function formatNPR(value: any) {
+function formatNPR(value: unknown) {
   const n = Number(value);
   if (!Number.isFinite(n)) return "--";
   return new Intl.NumberFormat("en-NP", { maximumFractionDigits: 0 }).format(n);
 }
 
-export default function ItemCard({ item }: ItemCardProps) {
+function normalizeImageUrl(photo: string, baseUrl: string) {
+  if (!photo) return "/new_logo.png";
+  if (photo.startsWith("/api/uploads")) return photo;
+  if (photo.startsWith("/uploads")) return `${baseUrl}${photo}`;
+  if (photo.startsWith("/") && !photo.startsWith("//")) return photo;
+
+  try {
+    const url = new URL(photo);
+    if (url.protocol === "http:" || url.protocol === "https:") return url.toString();
+  } catch {
+    // Fall through to the safe fallback.
+  }
+
+  return "/new_logo.png";
+}
+
+function getStatusBadge(statusValue: unknown) {
+  const status = String(statusValue || "pending").trim().toLowerCase();
+
+  if (status === "approved") {
+    return {
+      label: "Approved",
+      className: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
+    };
+  }
+
+  if (status === "rejected") {
+    return {
+      label: "Rejected",
+      className: "bg-red-50 text-red-700 ring-1 ring-red-200",
+    };
+  }
+
+  return {
+    label: "Pending",
+    className: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
+  };
+}
+
+export default function ItemCard({ item, onDelete, deleting = false }: ItemCardProps) {
   const BASE_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5050";
 
   const rawPhoto = item.photos?.[0];
   const photo = rawPhoto ? String(rawPhoto).trim() : "";
-  const imageUrl = photo
-    ? photo.startsWith("http")
-      ? photo
-      : photo.startsWith("/uploads")
-        ? `${BASE_URL}${photo}`
-        : photo
-    : "/logo.png";
+  const imageUrl = normalizeImageUrl(photo, BASE_URL);
 
   const isLocalImage =
     typeof imageUrl === "string" &&
-    (imageUrl.includes("localhost") || imageUrl.includes("127.0.0.1"));
+    (imageUrl.includes("localhost") ||
+      imageUrl.includes("127.0.0.1") ||
+      imageUrl.startsWith("/api/uploads"));
 
   const finalPrice = item.finalPrice ?? item.final_price ?? item.price;
   const basePrice = item.basePrice ?? item.base_price;
   const rating = calcRating(basePrice, finalPrice);
-
-  const base = Number(basePrice);
-  const finalP = Number(finalPrice);
 
   const storage =
     item.storage ??
@@ -63,9 +103,10 @@ export default function ItemCard({ item }: ItemCardProps) {
   const subtitleParts = [item.deviceCondition ?? item.category ?? null, storage ? `${storage} GB` : null].filter(Boolean);
   const subtitle = subtitleParts.join(" • ");
 
-  const title = item.phoneModel || item.itemName || item.title || "Unknown Item";
+  const title = String(item.phoneModel || item.itemName || item.title || "Unknown Item");
 
-  const year = item.year ?? "-";
+  const year = item.year === null || item.year === undefined ? "-" : String(item.year);
+  const statusBadge = getStatusBadge(item.status);
 
   const rawId = item._id ?? item.id ?? null;
   const id = rawId && String(rawId) !== "undefined" && String(rawId) !== "null" ? String(rawId) : null;
@@ -88,7 +129,16 @@ export default function ItemCard({ item }: ItemCardProps) {
 
       {/* Content */}
       <div className="mt-2.5">
-        <p className="truncate text-[12.5px] font-semibold text-gray-900">{title}</p>
+        <div className="flex items-start justify-between gap-2">
+          <p className="min-w-0 truncate text-[12.5px] font-semibold text-gray-900">
+            {title}
+          </p>
+          <span
+            className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusBadge.className}`}
+          >
+            {statusBadge.label}
+          </span>
+        </div>
 
         {subtitle ? (
           <p className="mt-0.5 truncate text-[10.5px] text-gray-500">{subtitle}</p>
@@ -112,12 +162,35 @@ export default function ItemCard({ item }: ItemCardProps) {
       </div>
   );
 
-  if (!id) return card;
+  const deleteButton =
+    id && onDelete ? (
+      <button
+        type="button"
+        disabled={deleting}
+        onClick={() => onDelete(id)}
+        className="mt-2 inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+        {deleting ? "Deleting..." : "Delete"}
+      </button>
+    ) : null;
+
+  if (!id) {
+    return (
+      <div>
+        {card}
+        {deleteButton}
+      </div>
+    );
+  }
 
   const href = `/item/${id}`;
   return (
-    <Link href={href} className="block">
-      {card}
-    </Link>
+    <div>
+      <Link href={href} className="block">
+        {card}
+      </Link>
+      {deleteButton}
+    </div>
   );
 }

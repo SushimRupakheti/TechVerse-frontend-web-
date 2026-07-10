@@ -56,7 +56,7 @@ export default async function DashboardHomePage({
   const availableItems = items.filter((item) => {
     const status = String(item.status ?? "").trim().toLowerCase();
     const isSold = item.isSold === true || String(item.isSold).toLowerCase() === "true";
-    return !isSold && status !== "sold";
+    return !isSold && status === "approved";
   });
 
   return (

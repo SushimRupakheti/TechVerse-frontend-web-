@@ -49,8 +49,8 @@ export default function Footer() {
                     <h3>Payment Accepted</h3>
                     <div className="payment flex items-center gap-2">
                         <img
-                            src="/esewa.png"
-                            alt="eSewa"
+                            src="/stripe.png"
+                            alt="Stripe"
                             className="w-16 h-auto object-contain"
                         />
                     </div>

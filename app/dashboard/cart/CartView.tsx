@@ -21,11 +21,20 @@ function formatNPR(value: unknown) {
 }
 
 function normalizePhoto(src: unknown) {
-  if (!src) return "/logo.png";
+  if (!src) return "/new_logo.png";
   const value = String(src).trim();
-  if (value.startsWith("http://") || value.startsWith("https://")) return value;
+  if (value.startsWith("/api/uploads")) return value;
   if (value.startsWith("/uploads")) return `${BASE_URL}${value}`;
-  return value;
+  if (value.startsWith("/") && !value.startsWith("//")) return value;
+
+  try {
+    const url = new URL(value);
+    if (url.protocol === "http:" || url.protocol === "https:") return url.toString();
+  } catch {
+    // Fall through to the safe fallback.
+  }
+
+  return "/new_logo.png";
 }
 
 function getProduct(item: CartItem) {
@@ -132,7 +141,9 @@ export default function CartView({
               const price = item.priceAtTime ?? product?.finalPrice ?? product?.price ?? 0;
               const imageUrl = normalizePhoto(product?.photos?.[0]);
               const isLocalImage =
-                imageUrl.includes("localhost") || imageUrl.includes("127.0.0.1");
+                imageUrl.includes("localhost") ||
+                imageUrl.includes("127.0.0.1") ||
+                imageUrl.startsWith("/api/uploads");
 
               return (
                 <article

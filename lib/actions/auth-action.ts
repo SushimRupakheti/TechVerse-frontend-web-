@@ -28,6 +28,8 @@ type AuthFormData = Record<string, unknown>;
 type AuthApiResult = {
   success?: boolean;
   token?: string;
+  accessToken?: string;
+  jwt?: string;
   data?: Record<string, unknown>;
   message?: string;
   twoFactorRequired?: boolean;
@@ -40,6 +42,11 @@ const getErrorMessage = (error: unknown, fallback: string) =>
 
 const getStringField = (value: unknown) =>
   typeof value === "string" ? value : undefined;
+
+const getRecordField = (value: unknown) =>
+  value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : undefined;
 
 export const handleRegister = async (formData: AuthFormData) => {
     try{
@@ -62,7 +69,16 @@ export const handleRegister = async (formData: AuthFormData) => {
 }
 
 const completeLogin = async (result: AuthApiResult) => {
-  const token = result.token || getStringField(result.data?.token);
+  const data = getRecordField(result.data) || {};
+  const nestedUser = getRecordField(data.user);
+  const token =
+    result.token ||
+    result.accessToken ||
+    result.jwt ||
+    getStringField(data.token) ||
+    getStringField(data.accessToken) ||
+    getStringField(data.jwt);
+
   if (!token) {
     return {
       success: false,
@@ -70,9 +86,17 @@ const completeLogin = async (result: AuthApiResult) => {
     };
   }
 
-  const userData: Record<string, unknown> & { token: string } = result.data
-    ? { ...result.data, token }
-    : { token };
+  const userData: Record<string, unknown> & { token: string } = nestedUser
+    ? { ...nestedUser, token }
+    : { ...data, token };
+
+  const normalizedRole =
+    getStringField(userData.role)?.toLowerCase() ||
+    getStringField(data.role)?.toLowerCase() ||
+    getStringField(nestedUser?.role)?.toLowerCase() ||
+    "user";
+
+  userData.role = normalizedRole;
 
   // Save token + user data
   await setAuthToken(token);
@@ -82,11 +106,7 @@ const completeLogin = async (result: AuthApiResult) => {
   const cookieStore = await cookies();
 
   // Store normalized role for middleware
-  const normalizedRole =
-    typeof userData.role === "string" ? userData.role.toLowerCase() : "";
-  if (normalizedRole) {
-    cookieStore.set("role", normalizedRole, { path: "/" });
-  }
+  cookieStore.set("role", normalizedRole, { path: "/" });
 
   return {
     success: true,

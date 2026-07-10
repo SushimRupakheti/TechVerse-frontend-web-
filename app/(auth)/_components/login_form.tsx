@@ -5,7 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Lock, Mail, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { handleLogin, handleVerifyTwoFactorLogin } from "@/lib/actions/auth-action";
+import { handleVerifyTwoFactorLogin } from "@/lib/actions/auth-action";
+import { login } from "@/lib/api/auth";
 import { loginSchema, LoginFormData } from "../schema";
 
 function getErrorMessage(error: unknown) {
@@ -14,11 +15,23 @@ function getErrorMessage(error: unknown) {
 
 type LoginSuccessData = {
   token?: string;
+  accessToken?: string;
+  jwt?: string;
   role?: string;
+  user?: {
+    token?: string;
+    accessToken?: string;
+    jwt?: string;
+    role?: string;
+  };
 };
 
 type LoginActionResult = {
   success: boolean;
+  token?: string;
+  accessToken?: string;
+  jwt?: string;
+  role?: string;
   message?: string;
   data?: LoginSuccessData;
   twoFactorRequired?: boolean;
@@ -46,17 +59,25 @@ export default function LoginForm() {
   });
 
   const finishLogin = (data?: LoginSuccessData) => {
-    const role = data?.role?.toLowerCase();
+    const token =
+      data?.token ||
+      data?.accessToken ||
+      data?.jwt ||
+      data?.user?.token ||
+      data?.user?.accessToken ||
+      data?.user?.jwt;
+    const role = (data?.role || data?.user?.role || "user").toLowerCase();
 
-    if (data?.token) {
-      document.cookie = `token=${data.token}; path=/`;
+    if (token) {
+      document.cookie = `token=${token}; path=/`;
     }
     document.cookie = `role=${role}; path=/`;
 
     setSuccessMessage("Login successful. Redirecting...");
 
     setTimeout(() => {
-      router.push(role === "admin" ? "/admin/dashboard" : "/dashboard");
+      router.replace(role === "admin" ? "/admin/dashboard" : "/dashboard");
+      router.refresh();
     }, 800);
   };
 
@@ -65,7 +86,7 @@ export default function LoginForm() {
     setSuccessMessage("");
 
     try {
-      const result = (await handleLogin(data)) as LoginActionResult;
+      const result = (await login(data)) as LoginActionResult;
 
       if (!result.success) {
         throw new Error(result.message || "Login failed");
@@ -81,7 +102,14 @@ export default function LoginForm() {
         return;
       }
 
-      finishLogin(result.data);
+      finishLogin(
+        result.data || {
+          token: result.token,
+          accessToken: result.accessToken,
+          jwt: result.jwt,
+          role: result.role,
+        }
+      );
     } catch (err) {
       setError(getErrorMessage(err));
     }
