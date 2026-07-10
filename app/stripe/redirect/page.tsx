@@ -71,6 +71,10 @@ function StripeRedirectContent() {
           throw new Error("Invalid payment amount");
         }
 
+        const appOrigin = window.location.origin;
+        const successUrl = `${appOrigin}/stripe/success?session_id={CHECKOUT_SESSION_ID}&orderId=${encodeURIComponent(orderId)}`;
+        const cancelUrl = `${appOrigin}/stripe/cancel?order_id=${encodeURIComponent(orderId)}`;
+
         const token = getReadableToken();
         const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5050";
         const res = await fetch(`${base}/api/payments/stripe/checkout`, {
@@ -99,12 +103,18 @@ function StripeRedirectContent() {
             time: order.time,
             oid: orderId,
             refId: orderId,
+            successUrl,
+            cancelUrl,
+            success_url: successUrl,
+            cancel_url: cancelUrl,
             metadata: {
               productId,
               itemId: productId,
+              orderId,
               productName,
               email: order.payment?.buyerEmail || order.email,
               currency: "npr",
+              paymentMethod: "stripe",
               price: String(nprAmount),
             },
           }),

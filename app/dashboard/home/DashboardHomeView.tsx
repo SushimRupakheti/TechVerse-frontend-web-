@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import HomeCard from "@/app/components/homeCard";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   Cpu,
@@ -179,7 +180,7 @@ export default function DashboardHomeView({
   const searchQuery = initialSearchQuery.trim();
   const [showOnlyProducts, setShowOnlyProducts] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
+  const router = useRouter();
   const items = useMemo(
     () => initialItems.filter((item) => !isSoldItem(item)),
     [initialItems]
@@ -368,6 +369,7 @@ export default function DashboardHomeView({
                 </button>
                 <button
                   type="button"
+                  onClick={() => router.push("../dashboard/sell")}
                   className="rounded-md border border-white/50 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10"
                 >
                   Sell Your Tech

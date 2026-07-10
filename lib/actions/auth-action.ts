@@ -269,6 +269,7 @@ type JwtPayload = {
   id: string;
   email: string;
   role: "admin" | "user";
+  exp?: number;
 };
 export const getAuthUser = async (): Promise<AuthUser | null> => {
   try {
@@ -276,6 +277,7 @@ export const getAuthUser = async (): Promise<AuthUser | null> => {
     if (!token) return null;
 
     const decoded = jwtDecode<JwtPayload>(token);
+    if (decoded.exp && decoded.exp * 1000 <= Date.now()) return null;
 
     return {
       id: decoded.id,

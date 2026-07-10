@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import AdvertisementBar from "../components/AdvertisementBar";
 import Navbar from "../components/Navbar";
 import { redirect } from "next/navigation";
-import { getAuthToken } from "@/lib/cookie";
+import { getAuthUser } from "@/lib/actions/auth-action";
 import { getOAuthUser } from "@/lib/actions/oauth-action";
 
 export default async function DashboardLayout({
@@ -11,9 +11,9 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const token = await getAuthToken();
-  const oauthUser = token ? null : await getOAuthUser();
-  if (!token && !oauthUser) {
+  const authUser = await getAuthUser();
+  const oauthUser = authUser ? null : await getOAuthUser();
+  if (!authUser && !oauthUser) {
     redirect("/login");
   }
 

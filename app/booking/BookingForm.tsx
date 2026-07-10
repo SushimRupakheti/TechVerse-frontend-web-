@@ -161,6 +161,10 @@ export default function BookingForm({ item, user }: { item?: Item; user?: User }
         throw new Error("Invalid payment amount");
       }
 
+      const appOrigin = window.location.origin;
+      const successUrl = `${appOrigin}/stripe/success?session_id={CHECKOUT_SESSION_ID}&orderId=${encodeURIComponent(orderId)}`;
+      const cancelUrl = `${appOrigin}/stripe/cancel?order_id=${encodeURIComponent(orderId)}`;
+
       const payload = {
         amount: nprAmount,
         currency: "npr",
@@ -180,12 +184,18 @@ export default function BookingForm({ item, user }: { item?: Item; user?: User }
         time,
         oid: orderId,
         refId: orderId,
+        successUrl,
+        cancelUrl,
+        success_url: successUrl,
+        cancel_url: cancelUrl,
         metadata: {
           productId: pid,
           itemId: pid,
+          orderId,
           productName,
           email: buyerEmail,
           currency: "npr",
+          paymentMethod: "stripe",
           price: String(nprAmount),
         },
       };
