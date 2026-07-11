@@ -178,7 +178,18 @@ export const uploadPhotos = async (files: (File | Blob)[]): Promise<UploadResult
 
       if (!res.ok) {
         const text = await res.text();
-        return { success: false, urls: [], message: `Upload failed: ${res.status} ${res.statusText} - ${text.slice(0,200)}` };
+        let message = "We couldn't upload that image. Please choose a supported image file.";
+
+        try {
+          const errorData = JSON.parse(text);
+          if (errorData?.message && errorData.message !== "Invalid image upload.") {
+            message = errorData.message;
+          }
+        } catch {
+          // Keep the friendly fallback when the server does not return JSON.
+        }
+
+        return { success: false, urls: [], message };
       }
 
       const data = await res.json();

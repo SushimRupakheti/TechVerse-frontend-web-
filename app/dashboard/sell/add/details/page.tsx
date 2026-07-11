@@ -42,6 +42,12 @@ export default function DashboardSellAddDetailsPage() {
     }
     setPhotos((p) => [...p, ...arr]);
     setFiles((f) => [...f, ...fileArr]);
+    e.target.value = "";
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos((current) => current.filter((_, photoIndex) => photoIndex !== index));
+    setFiles((current) => current.filter((_, fileIndex) => fileIndex !== index));
   };
 
   const fileToDataUrl = (file: File) => {
@@ -156,7 +162,17 @@ export default function DashboardSellAddDetailsPage() {
           <input type="file" accept="image/*" multiple onChange={handleFileChange} />
           <div className="mt-4 flex flex-wrap gap-3">
             {photos.map((p, idx) => (
-              <img key={idx} src={p} alt={`Selected photo ${idx + 1}`} className="h-24 w-24 rounded-lg border object-cover" />
+              <div key={`${p}-${idx}`} className="relative">
+                <img src={p} alt={`Selected photo ${idx + 1}`} className="h-24 w-24 rounded-lg border object-cover" />
+                <button
+                  type="button"
+                  onClick={() => removePhoto(idx)}
+                  aria-label={`Remove selected photo ${idx + 1}`}
+                  className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-sm font-semibold text-white shadow hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                >
+                  &times;
+                </button>
+              </div>
             ))}
           </div>
         </div>
