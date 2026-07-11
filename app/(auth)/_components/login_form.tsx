@@ -312,6 +312,14 @@ export default function LoginForm() {
         >
           {isSubmitting ? "Logging in..." : "Log in"}
         </button>
+
+        <div className="flex gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-2.5 text-xs leading-5 text-blue-800">
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          <p>
+            For your security, 5 failed login attempts temporarily block new
+            attempts from your IP address for 5 minutes.
+          </p>
+        </div>
       </form>
       </>
       )}
