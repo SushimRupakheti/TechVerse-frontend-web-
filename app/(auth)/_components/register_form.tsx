@@ -142,8 +142,11 @@ export default function RegisterForm() {
       const result = (await registerUser(data)) as RegisterResult;
       if (!result.success) throw new Error(result.message);
 
-      setSuccessMessage("Registration successful. Redirecting to login...");
-      setTimeout(() => router.push("/login"), 1200);
+      sessionStorage.setItem("verificationEmail", data.email);
+      setSuccessMessage("Registration successful. Check your email to verify your account.");
+      router.push(
+        `/verify-email-pending?email=${encodeURIComponent(data.email)}`
+      );
     } catch (err) {
       setError(getErrorMessage(err));
     }

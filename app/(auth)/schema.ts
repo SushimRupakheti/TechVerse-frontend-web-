@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-
 export const loginSchema = z.object({
   email: z
     .string()
@@ -13,7 +12,6 @@ export const loginSchema = z.object({
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;
-
 
 export const registerSchema = z.object({
   firstName: z
@@ -46,5 +44,10 @@ export const registerSchema = z.object({
     .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
 });
 
-
 export type RegisterFormData = z.infer<typeof registerSchema>;
+
+
+
+
+
+

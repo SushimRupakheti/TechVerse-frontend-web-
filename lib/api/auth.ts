@@ -57,6 +57,42 @@ export const login = async (loginData: Record<string, unknown>) => {
     }
 }
 
+export const resendVerificationEmail = async (email: string) => {
+  try {
+    const response = await axios.post(
+      API.AUTH.RESEND_VERIFICATION,
+      { email },
+      typeof window !== "undefined" ? { baseURL: "" } : undefined
+    );
+    return response.data;
+  } catch (error: unknown) {
+    const apiError = error as ApiErrorShape;
+    if (apiError.response?.status === 429) {
+      throw new Error("You have requested too many emails. Please wait.");
+    }
+    throw new Error(
+      getApiErrorMessage(
+        error,
+        "Unable to resend the verification email. Please try again."
+      )
+    );
+  }
+};
+
+export const verifyEmail = async (token: string) => {
+  try {
+    const response = await axios.get(API.AUTH.VERIFY_EMAIL, {
+      params: { token },
+      ...(typeof window !== "undefined" ? { baseURL: "" } : {}),
+    });
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(
+      getApiErrorMessage(error, "Verification link is invalid or has expired.")
+    );
+  }
+};
+
 export const verifyTwoFactorLogin = async (payload: {
   userId?: string;
   email?: string;

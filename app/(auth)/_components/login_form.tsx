@@ -6,7 +6,7 @@ import { ArrowLeft, Lock, Mail, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { handleVerifyTwoFactorLogin } from "@/lib/actions/auth-action";
-import { login } from "@/lib/api/auth";
+import { login, resendVerificationEmail } from "@/lib/api/auth";
 import { loginSchema, LoginFormData } from "../schema";
 
 function getErrorMessage(error: unknown) {
@@ -49,10 +49,13 @@ export default function LoginForm() {
   } | null>(null);
   const [otp, setOtp] = useState("");
   const [otpSubmitting, setOtpSubmitting] = useState(false);
+  const [verificationRequired, setVerificationRequired] = useState(false);
+  const [resendingVerification, setResendingVerification] = useState(false);
 
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -84,6 +87,7 @@ export default function LoginForm() {
   const onSubmit = async (data: LoginFormData) => {
     setError("");
     setSuccessMessage("");
+    setVerificationRequired(false);
 
     try {
       const result = (await login(data)) as LoginActionResult;
@@ -111,7 +115,35 @@ export default function LoginForm() {
         }
       );
     } catch (err) {
+      const message = getErrorMessage(err);
+      setError(message);
+      if (message.toLowerCase().includes("verify your email")) {
+        setVerificationRequired(true);
+        sessionStorage.setItem("verificationEmail", data.email);
+      }
+    }
+  };
+
+  const onResendVerification = async () => {
+    const email = getValues("email");
+    if (!email) {
+      setError("Enter your email address to resend the verification email.");
+      return;
+    }
+
+    setError("");
+    setSuccessMessage("");
+    try {
+      setResendingVerification(true);
+      const result = await resendVerificationEmail(email);
+      if (result?.success === false) {
+        throw new Error(result.message || "Unable to resend verification email.");
+      }
+      setSuccessMessage(result?.message || "Verification email sent successfully.");
+    } catch (err) {
       setError(getErrorMessage(err));
+    } finally {
+      setResendingVerification(false);
     }
   };
 
@@ -173,6 +205,16 @@ export default function LoginForm() {
       {error ? (
         <div className="mt-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
+          {verificationRequired ? (
+            <button
+              type="button"
+              onClick={onResendVerification}
+              disabled={resendingVerification}
+              className="mt-3 flex h-10 w-full items-center justify-center rounded-md border border-red-300 bg-white px-3 font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {resendingVerification ? "Sending..." : "Resend Verification Email"}
+            </button>
+          ) : null}
         </div>
       ) : null}
 
@@ -249,9 +291,28 @@ export default function LoginForm() {
         onClick={onGoogleLogin}
         className="mt-7 flex h-12 w-full items-center justify-center gap-3 rounded-md border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
       >
-        <span className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 text-sm font-bold text-blue-700">
-          G
-        </span>
+        <svg
+          className="h-5 w-5"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            fill="#4285F4"
+            d="M21.6 12.23c0-.71-.06-1.4-.18-2.07H12v3.91h5.38a4.6 4.6 0 0 1-2 3.02v2.54h3.24c1.9-1.75 2.98-4.33 2.98-7.4Z"
+          />
+          <path
+            fill="#34A853"
+            d="M12 22c2.7 0 4.98-.9 6.63-2.42l-3.24-2.54c-.9.6-2.05.96-3.39.96-2.61 0-4.82-1.76-5.61-4.13H3.05v2.62A10 10 0 0 0 12 22Z"
+          />
+          <path
+            fill="#FBBC05"
+            d="M6.39 13.87A6.02 6.02 0 0 1 6.07 12c0-.65.11-1.28.32-1.87V7.51H3.05A10 10 0 0 0 2 12c0 1.61.39 3.14 1.05 4.49l3.34-2.62Z"
+          />
+          <path
+            fill="#EA4335"
+            d="M12 6c1.47 0 2.79.5 3.82 1.5l2.87-2.87A9.63 9.63 0 0 0 12 2a10 10 0 0 0-8.95 5.51l3.34 2.62C7.18 7.76 9.39 6 12 6Z"
+          />
+        </svg>
         Continue with Google
       </button>
 
